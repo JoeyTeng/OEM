@@ -4,15 +4,13 @@
 
 int GetDays(int date)
 {
-    struct std::tm tmp;
-    tmp.tm_sec = 0;
-    tmp.tm_min = 0;
-    tmp.tm_hour = 0;
-    tmp.tm_mday = date % 100;
-    tmp.tm_mon = (date / 100) % 100;
-    tmp.tm_year = (date / 10000);
+    int day = date % 100;
+    int mon = (date / 100) % 100;
+    int year = (date / 10000) - 1;//days from 01Jan 1A.D
 
-    return (std::mktime(&tmp) / 3600 / 24);
+    int days = (year * 365 + year / 4 + year / 100 + year / 400) + (((!(year % 4) && year % 100 || !(year % 400)) && mon > 2) ? 1 : 0);
+    days += MONTH_DAY[mon - 1] + day - 1;
+    return (days);
 }
 
 //Bank::public:

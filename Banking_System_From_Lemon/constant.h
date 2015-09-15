@@ -19,7 +19,9 @@ const int INVALID_OPERATION = 0x8000;
 
 //UNIX/Linux/OS X
 //#define CLEAN "clear"
+//#define CLEAR std::cin.seekg(0, std::ios::end)
 //Windows
 #define CLEAN "cls"
+#define CLEAR std::cin.sync()
 
 #endif

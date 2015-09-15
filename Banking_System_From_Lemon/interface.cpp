@@ -56,9 +56,9 @@ int Bank::interface::GetInput(T & input)
     T tmp;
     while ((std::cin >> tmp).fail()) 
     {
-        std::cerr << "Please type in an legal input!" << std::endl;
+        std::cout << "Please type in an legal input!" << std::endl;
         std::cin.clear();
-        std::cin.get();
+        CLEAR;
     }
     input = tmp;
     return 0;
@@ -431,7 +431,7 @@ int Bank::interface::Delete(Bank & bank)
 }
 int Bank::interface::Pause()
 {
-    std::cin.seekg(0, std::ios::end);
+    CLEAR;
     std::cin.get();
 
     return 0;
