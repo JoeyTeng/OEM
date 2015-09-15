@@ -11,6 +11,7 @@ Bank::interface::interface(Bank & bank)
     std::system(CLEAN);
     std::cout << "Welcome to the Banking system!" << std::endl;
     std::cout << "Press Enter/Return to continue..." << std::endl;
+    std::cin.sync();
     std::cin.get();
     while (this -> Status)
         switch (this -> Status)
@@ -367,7 +368,7 @@ int Bank::interface::editFixed(FixedDeposit & fixed)
                 break;
 
             case 2:
-                std::cout << "Please choose an record to continue:" << std::endl;
+                std::cout << "Please choose an record to continue:(input the No.)" << std::endl;
                 fixed.Print();
                 this -> GetInput(number);
                 if (!(number > -1 && number < fixed.Size()))
@@ -401,6 +402,8 @@ int Bank::interface::editFixed(FixedDeposit & fixed)
             case 4:
                 fixed.Print();
                 std::cout << std::endl;
+                std::cin.get();
+                std::cin.get();
                 break;
             case 5:
                 std::cout << "Date (yyyymmdd): " << std::endl;

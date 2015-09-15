@@ -249,7 +249,7 @@ Deposit::Deposit ()
     this -> UpdateDate = 0;
     this -> InterestRate = 0;
     this -> Detail.clear();
-    std::cerr << "DEPOSIT INITIALIZE" << std::endl;
+//    std::cerr << "DEPOSIT INITIALIZE" << std::endl;
 }
 Deposit::Deposit (const Deposit & Mother)
 {
