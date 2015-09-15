@@ -32,6 +32,7 @@ class Bank
                 int editCurrent (CurrentDeposit & deposit);
                 int editFixed (FixedDeposit & deposit);
                 int Delete (Bank & bank);
+                int Pause ();
                 int Error ();
         };
         int Append ();

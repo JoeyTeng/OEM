@@ -234,6 +234,11 @@ int DetailStruct::Terminate (int date, double interestCRate)
     if (this -> Terminated)
         return 1;
     int Days = GetDays(date) - GetDays(this -> Date);
+    if (Days < 0)
+    {
+        std::cerr << "Cannot input a date before latest update!" << std::endl;
+        return -1;
+    }
     if (Days < Term)
         this -> Balance *= std::pow(interestCRate/365 + 1, Days);
     else
@@ -337,6 +342,11 @@ int Deposit::Size()
 int Deposit::CalculateInterest (int date)
 {
     int days = GetDays(date) - GetDays(this -> UpdateDate);
+    if (days < 0)
+    {
+        std::cerr << "Cannot input a date before latest update!" << std::endl;
+        return -1;
+    }
     Balance *= std::pow((1 + this -> InterestRate/100), days);
     return 0;
 }

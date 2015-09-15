@@ -11,8 +11,7 @@ Bank::interface::interface(Bank & bank)
     std::system(CLEAN);
     std::cout << "Welcome to the Banking system!" << std::endl;
     std::cout << "Press Enter/Return to continue..." << std::endl;
-    std::cin.sync();
-    std::cin.get();
+    this -> Pause();
     while (this -> Status)
         switch (this -> Status)
         {
@@ -125,6 +124,7 @@ int Bank::interface::creation(Bank & bank)
         return 0;
     }
     this -> Status = EDIT;
+    this -> Pause();
     return Number;
 }
 int Bank::interface::query(Bank & bank)
@@ -153,8 +153,7 @@ int Bank::interface::query(Bank & bank)
             case 0: this -> Status = MENU; return -1;
             default: this -> Status |= INVALID_OPERATION; return -1;
         }
-        std::cin.get();
-        std::cin.get();
+        this -> Pause();
         std::system(CLEAN);
     }
     return 0;
@@ -197,7 +196,6 @@ Index_Exception:
         int Option = 0;
         this -> GetInput(option);
         system(CLEAN);
-        std::cin.get();
         switch (option)
         {
             case 1:
@@ -257,6 +255,7 @@ Index_Exception:
                 this -> Status |= INVALID_OPERATION;
                 return -1;
         }
+        this -> Pause();
     }
 }
 int Bank::interface::editCurrent(CurrentDeposit & current)
@@ -330,6 +329,7 @@ int Bank::interface::editCurrent(CurrentDeposit & current)
             default:
                 break;
         }
+        this -> Pause();
     }
 }
 int Bank::interface::editFixed(FixedDeposit & fixed)
@@ -402,8 +402,6 @@ int Bank::interface::editFixed(FixedDeposit & fixed)
             case 4:
                 fixed.Print();
                 std::cout << std::endl;
-                std::cin.get();
-                std::cin.get();
                 break;
             case 5:
                 std::cout << "Date (yyyymmdd): " << std::endl;
@@ -421,6 +419,7 @@ int Bank::interface::editFixed(FixedDeposit & fixed)
             default:
                 break;
         }
+        this -> Pause();
     }
 }
 int Bank::interface::Delete(Bank & bank)
@@ -428,6 +427,13 @@ int Bank::interface::Delete(Bank & bank)
     int Number = this -> GetNumber(bank);
     bank.Delete(Number);
     this -> Status = MENU;
+    return 0;
+}
+int Bank::interface::Pause()
+{
+    std::cin.seekg(0, std::ios::end);
+    std::cin.get();
+
     return 0;
 }
 int Bank::interface::Error()
