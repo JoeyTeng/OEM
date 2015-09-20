@@ -131,6 +131,7 @@ class Account
 
         std::string GetName ();
         std::string Rename (const std::string & name);
+        int PrintProfile ();
         int SetType (const std::string & type);
         int SetType (int type);
         std::string GetType ();

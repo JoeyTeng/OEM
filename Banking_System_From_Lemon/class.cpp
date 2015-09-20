@@ -13,6 +13,23 @@ int GetDays(int date)
     return (days);
 }
 
+std::string encode(std::string name, std::string ID, std::string gender)
+{
+    return (name + char(0) + ID + char (0) + gender);
+}
+std::string GetName(std::string code)
+{
+    return std::string(code.begin(), code.begin() + code.find(char(0)));
+}
+std::string GetID(std::string code)
+{
+    return std::string(code.begin() + code.find(char(0)) + 1, code.begin() + code.rfind(char(0)))
+}
+std::string GetGender(std::string code)
+{
+    return std::string(code.begin() + code.rfind(char(0)), code.end());
+}
+
 //Bank::public:
 Bank::Bank ()
 {
@@ -134,6 +151,14 @@ std::string Account::Rename (const std::string & name)
 
     return tmp;
 }
+int Account::PrintProfile ()
+{
+    std::cout << "Name:\n" << GetName(this -> GetName()) << std::endl
+              << "ID:\n" << GetID(this -> GetName()) << std::endl
+              << "Gender:\n" << GetGender(this -> GetName()) << std::endl;
+
+    return 0;
+}
 int Account::SetType (const std::string & type)
 {
     if (type == ACCOUNT_TYPE_CURRENT)
@@ -213,7 +238,7 @@ int Account::Pop ()
 int Account::Print ()
 {
     std::cout << "Account Number:\n" << this -> Number << std::endl;
-    std::cout << "Name:\n" << this -> GetName() << std::endl;
+    this -> PrintProfile();
     std::cout << "Deposit Account Type:\n" << this -> GetType() << std::endl;
     std::cout << "Fixed Deposit Account Information:\n" << std::endl;
     if (this -> GetTypeCode() & ACCOUNT_TYPE_FIXED_CODE)

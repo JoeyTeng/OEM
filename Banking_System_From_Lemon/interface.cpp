@@ -1,6 +1,7 @@
 //Interface
 #ifndef interface_cpp
 #define interface_cpp
+
 Bank::interface::interface(Bank & bank)
 {
     std::cout << std::fixed;
@@ -135,7 +136,7 @@ int Bank::interface::query(Bank & bank)
     {
         std::system(CLEAN);
         std::cout << "What do you want to know?" << std::endl
-                  << "1. Name" << std::endl
+                  << "1. Profile" << std::endl
                   << "2. Account Type" << std::endl
                   << "3. All Information" << std::endl
                   << "4. Change the Account" << std::endl
@@ -146,7 +147,7 @@ int Bank::interface::query(Bank & bank)
         std::system(CLEAN);
         switch (option)
         {
-            case 1: std::cout << "Name:\n" << bank.Query(Number).GetName() << std::endl; break;
+            case 1: bank.Query(Number).PrintProfile(); break;
             case 2: std::cout << "Account Type:\n" << bank.Query(Number).GetType() << std::endl; break;
             case 3: bank.Query(Number).Print(); break;
             case 4:
@@ -181,6 +182,9 @@ Index_Exception:
     }
     Account & account = *accountPointer;
     std::string tmp;
+    std::string name;
+    std::string ID;
+    std::string gender;
 
     while (true)
     {
@@ -226,7 +230,13 @@ Index_Exception:
                 break;
             case 3:
                 std::cout << "What is your name again?" << std::endl;
-                this -> GetInput(tmp);
+                this -> GetInput(name);
+                std::cout << "What is your ID?" << std::endl;
+                this -> GetInput(ID);
+                std::cout << "What is your gender?" << std::endl;
+                this -> GetInput(gender);
+                tmp = encode(name, ID, gender);
+
                 account.Rename(tmp);
                 break;
            case 4:
