@@ -8,7 +8,6 @@ const std::string ACCOUNT_TYPE_FIXED("fixed");
 const int ACCOUNT_TYPE_FIXED_CODE = 0x02;
 const std::string ACCOUNT_TYPE_BOTH("both");
 const int ACCOUNT_TYPE_BOTH_CODE = 0x03;
-const double INTERESTRATE = 0.04;
 const int MENU = 0x1;
 const int INPUT = 0x2;
 const int CREATION = 0x4;

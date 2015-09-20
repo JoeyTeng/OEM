@@ -29,7 +29,10 @@ int Bank::Append ()
 {
     int Number = this -> GetNumber();
     Account tmp(Number);
-    std::swap(Data.back(), tmp);
+    if (this -> GetIndex(Number) == -1)
+        std::swap(Data.back(), tmp);
+    else
+        std::swap(Data.at(this -> GetIndex(Number)), tmp);
     ++(this -> Total);
     std::cout <<"CREATED" << std::endl;
     return Number;
@@ -49,9 +52,9 @@ Account & Bank::Set (int number)
 {
     return Data.at(this -> GetIndex(number));
 }
-int Bank::Legal (int number)
+int Bank::Legal (int number)//1 is legal
 {
-    if (Number.size() <= number)
+    if (number >= 0 || number < this -> Last || Number.at(number) != -1)
         return 0;
     return 1;
 }
