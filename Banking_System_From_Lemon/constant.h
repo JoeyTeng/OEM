@@ -18,10 +18,10 @@ const int INVALID_OPERATION = 0x8000;
 const int MONTH_DAY[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 //UNIX/Linux/OS X
-#define CLEAN "clear"
-#define CLEAR std::cin.seekg(0, std::ios::end)
+//#define CLEAN "clear"
+//#define CLEAR std::cin.seekg(0, std::ios::end)
 //Windows
-//#define CLEAN "cls"
-//#define CLEAR std::cin.sync()
+#define CLEAN "cls"
+#define CLEAR std::cin.sync()
 
 #endif
