@@ -23,11 +23,15 @@ std::string GetName(std::string code)
 }
 std::string GetID(std::string code)
 {
-    return std::string(code.begin() + code.find(char(0)) + 1, code.begin() + code.rfind(char(0)))
+    return std::string(code.begin() + code.find(char(0)) + 1, code.begin() + code.rfind(char(0)));
 }
 std::string GetGender(std::string code)
 {
     return std::string(code.begin() + code.rfind(char(0)), code.end());
+}
+std::string DecodeName(std::string code)
+{
+    return GetName(code);
 }
 
 //Bank::public:
@@ -72,8 +76,8 @@ Account & Bank::Set (int number)
 int Bank::Legal (int number)//1 is legal
 {
     if (number >= 0 || number < this -> Last || Number.at(number) != -1)
-        return 0;
-    return 1;
+        return 1;
+    return 0;
 }
 //Bank::private:
 int Bank::GetNumber ()
@@ -91,7 +95,7 @@ int Bank::GetNumber ()
     }
     ++(this -> Last);
 
-    return Number;
+    return this -> Last - 1;
 }
 int Bank::GetIndex (int number)
 {
@@ -115,13 +119,15 @@ Account::Account ()
 {
     this -> Type = 0;
     this -> Number = -1;
-    this -> Name = "";
+    this -> Name = char(0);
+    this -> Name += char(0);
 }
 Account::Account (const int number)
 {
     this -> Type = 0;
     this -> Number = number;
-    this -> Name = "";
+    this -> Name = char(0);
+    this -> Name += char(0);
 } 
 Account::Account (const Account & Mother)
 {
@@ -153,7 +159,7 @@ std::string Account::Rename (const std::string & name)
 }
 int Account::PrintProfile ()
 {
-    std::cout << "Name:\n" << GetName(this -> GetName()) << std::endl
+    std::cout << "Name:\n" << DecodeName(this -> GetName()) << std::endl
               << "ID:\n" << GetID(this -> GetName()) << std::endl
               << "Gender:\n" << GetGender(this -> GetName()) << std::endl;
 
@@ -230,6 +236,8 @@ int Account::Pop ()
     this -> Type = -1 & 0x03;
     this -> Number = -1;
     Name.clear();
+    Name = char(0);
+    Name += char(0);
     Fixed.Clear();
     Current.Clear();
 

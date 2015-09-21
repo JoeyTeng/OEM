@@ -22,6 +22,7 @@ class Bank
             private:
                 int Status;
                 int menu ();
+                int GetInput (std::string & input);
                 template <typename T>
                 int GetInput (T & input);
                 int confirm (std::string prompt);

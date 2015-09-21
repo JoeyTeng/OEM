@@ -51,10 +51,26 @@ int Bank::interface::menu()
 
     return 0;
 }
+int Bank::interface::GetInput(std::string & input)
+{
+    std::string tmp;
+    std::cin.clear();
+    CLEAR;
+    while ((std::getline(std::cin, tmp)).fail()) 
+    {
+        std::cout << "Please type in an legal input!" << std::endl;
+        std::cin.clear();
+        CLEAR;
+    }
+    input = tmp;
+    return 0;
+}
 template <typename T>
 int Bank::interface::GetInput(T & input)
 {
     T tmp;
+    std::cin.clear();
+    CLEAR;
     while ((std::cin >> tmp).fail()) 
     {
         std::cout << "Please type in an legal input!" << std::endl;
