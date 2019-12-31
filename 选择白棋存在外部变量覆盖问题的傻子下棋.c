@@ -396,7 +396,7 @@ char judge(int aRecordBoard[15][15], int i, int j, char current_player) {
     d = judge_down_up(aRecordBoard, i, j, current_player);
     if (a == 1 || b == 1 || c == 1 || d == 1) {
         if (current_player == 1)
-            printf("White  win!\n");
+            printf("White win!\n");
         else if (current_player == 2)
             printf("Black win!\n");
         return 1;
