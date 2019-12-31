@@ -4,6 +4,7 @@
 
 #define SIZE 15
 #define CHARSIZE 4
+#define DISPLAY_SIZE (SIZE * CHARSIZE)
 #define MAXLINE 1000
 // indicate an empty space on the board; 255 is never used as a player marker
 #define EMPTY 255
@@ -11,13 +12,13 @@
 //棋盘使用的是GBK编码，每一个中文字符占用2个字节。
 
 //棋盘基本模板
-char aInitDisplayBoardArray[SIZE][SIZE * CHARSIZE + 1] = {
+char aInitDisplayBoardArray[SIZE][DISPLAY_SIZE + 1] = {
     "┏┯┯┯┯┯┯┯┯┯┯┯┯┯┓", "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨", "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨", "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨",
     "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨", "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨", "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨", "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨",
     "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨", "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨", "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨", "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨",
     "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨", "┠┼┼┼┼┼┼┼┼┼┼┼┼┼┨", "┗┷┷┷┷┷┷┷┷┷┷┷┷┷┛"};
 //此数组用于显示棋盘
-char aDisplayBoardArray[SIZE][SIZE * CHARSIZE + 1];
+char aDisplayBoardArray[SIZE][DISPLAY_SIZE + 1];
 
 char play1Pic[] = "●";  //黑棋子;
 char play1CurrentPic[] = "▲";
@@ -29,11 +30,11 @@ char play2CurrentPic[] = "△";
 int aRecordBoard[SIZE][SIZE];
 int current_row, current_col;
 
-void ren_ren(int aRecordBoard[15][15], char current_player);
-void strategy_1(int aRecordBoard[15][15], char current_player);
+void ren_ren(int aRecordBoard[SIZE][SIZE], char current_player);
+void strategy_1(int aRecordBoard[SIZE][SIZE], char current_player);
 void XingXingMove(char current_player);
-void strategy_2(int aRecordBoard[15][15], char current_player);
-void ShaZiMove(int aRecordBoard[15][15], int x1, int y1, int x2, int y2,
+void strategy_2(int aRecordBoard[SIZE][SIZE], char current_player);
+void ShaZiMove(int aRecordBoard[SIZE][SIZE], int x1, int y1, int x2, int y2,
                char current_player);
 
 int input(char current_player);
@@ -41,11 +42,14 @@ void initRecordBoard(void);
 void recordtoDisplayArray(void);
 void displayBoard(void);
 
-char judge(int aRecordBoard[15][15], int i, int j, char current_player);
-char judge_line(int aRecordBoard[15][15], int i, int j, char current_player);
-char judge_row(int aRecordBoard[15][15], int i, int j, char current_player);
-char judge_up_down(int aRecordBoard[15][15], int i, int j, char current_player);
-char judge_down_up(int aRecordBoard[15][15], int i, int j, char current_player);
+char judge(int aRecordBoard[SIZE][SIZE], int i, int j, char current_player);
+char judge_line(int aRecordBoard[SIZE][SIZE], int i, int j,
+                char current_player);
+char judge_row(int aRecordBoard[SIZE][SIZE], int i, int j, char current_player);
+char judge_up_down(int aRecordBoard[SIZE][SIZE], int i, int j,
+                   char current_player);
+char judge_down_up(int aRecordBoard[SIZE][SIZE], int i, int j,
+                   char current_player);
 
 void Move(int n, int* x, int* y);
 
@@ -84,7 +88,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void ren_ren(int aRecordBoard[15][15], char current_player) {
+void ren_ren(int aRecordBoard[SIZE][SIZE], char current_player) {
     int isquit = 0;
     int is_win;
 
@@ -106,7 +110,7 @@ void ren_ren(int aRecordBoard[15][15], char current_player) {
     return;
 }
 
-void strategy_1(int aRecordBoard[15][15], char current_player) {
+void strategy_1(int aRecordBoard[SIZE][SIZE], char current_player) {
     int isquit = 0;
     int is_win = 0;
     int Choice;
@@ -162,8 +166,8 @@ void strategy_1(int aRecordBoard[15][15], char current_player) {
 
 void XingXingMove(char current_player) {
     while (1) {
-        current_row = rand() % 15;
-        current_col = rand() % 15;
+        current_row = rand() % SIZE;
+        current_col = rand() % SIZE;
         if (aRecordBoard[current_row][current_col] == EMPTY) break;
     }
     aRecordBoard[current_row][current_col] = current_player;
@@ -171,7 +175,7 @@ void XingXingMove(char current_player) {
     displayBoard();
 }
 
-void strategy_2(int aRecordBoard[15][15], char current_player) {
+void strategy_2(int aRecordBoard[SIZE][SIZE], char current_player) {
     int isquit = 0;
     int is_win = 0;
     int x1, x2, y1, y2;
@@ -258,7 +262,7 @@ void strategy_2(int aRecordBoard[15][15], char current_player) {
     return;
 }
 
-void ShaZiMove(int aRecordBoard[15][15], int x1, int y1, int x2, int y2,
+void ShaZiMove(int aRecordBoard[SIZE][SIZE], int x1, int y1, int x2, int y2,
                char current_player) {
     int n = 0;
     int tempx1 = x1, tempx2 = x2, tempy1 = y1, tempy2 = y2;
@@ -267,7 +271,7 @@ void ShaZiMove(int aRecordBoard[15][15], int x1, int y1, int x2, int y2,
         x2 = tempx2, y2 = tempy2;
         Move(n, &x2, &y2);
         n = n + 1;
-        if (x2 < 0 || x2 > 14 || y2 < 0 || y2 > 14) continue;
+        if (x2 < 0 || x2 >= SIZE || y2 < 0 || y2 >= SIZE) continue;
         if (aRecordBoard[x2][y2] == EMPTY) break;
     }
     if (aRecordBoard[x2][y2] == EMPTY) {
@@ -309,7 +313,7 @@ int input(char current_player) {
             if ((('A' <= d && d <= 'O') || ('a' <= d && d <= 'o')) && 1 <= n &&
                 n <= 15) {
                 if ('A' <= d && d <= 'O') {
-                    current_row = 15 - n;
+                current_row = SIZE - n;
                     current_col = d - 'A';
                     if (aRecordBoard[current_row][current_col] == EMPTY)
                         aRecordBoard[current_row][current_col] = current_player;
@@ -341,49 +345,49 @@ int input(char current_player) {
 
 //初始化棋盘格局
 void initRecordBoard(void) {
-    //通过双重循环，将aRecordBoard清0
-    int i, j;
-    for (i = 0; i < SIZE; i++) {
-        for (j = 0; j < CHARSIZE; j++) aRecordBoard[i][j] = EMPTY;
-    }
+    memset(aRecordBoard, EMPTY, sizeof(aRecordBoard));
 }
 //将aRecordBoard中记录的棋子位置，转化到aDisplayBoardArray中
 void recordtoDisplayArray(void) {
     //第一步：将aInitDisplayBoardArray中记录的空棋盘，复制到aDisplayBoardArray中
     for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE * 2 + 1; j++)
+        for (int j = 0; j < DISPLAY_SIZE + 1; j++) {
             aDisplayBoardArray[i][j] = aInitDisplayBoardArray[i][j];
+        }
     }
     //第二步：扫描aRecordBoard，当遇到非0的元素，将●或者◎复制到aDisplayBoardArray的相应位置上
     //注意：aDisplayBoardArray所记录的字符是中文字符，每个字符占2个字节。●和◎也是中文字符，每个也占2个字节。
     for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++)
+        for (int j = 0; j < SIZE; j++) {
+            char* playPic = NULL;
             if (aRecordBoard[i][j] == 1) {
-                aDisplayBoardArray[i][2 * j] = play1Pic[0];
-                aDisplayBoardArray[i][2 * j + 1] = play1Pic[1];
+                playPic = play1Pic;
             } else if (aRecordBoard[i][j] == 2) {
-                aDisplayBoardArray[i][2 * j] = play2Pic[0];
-                aDisplayBoardArray[i][2 * j + 1] = play2Pic[1];
+                playPic = play2Pic;
+            } else {
+                continue;
             }
+            for (int k = 0; k <= strlen(playPic); ++k) {
+                aDisplayBoardArray[i][j * CHARSIZE + k] = playPic[k];
+            }
+        }
     }
 }
 
 //显示棋盘格局
 void displayBoard(void) {
-    int i;
     //第一步：清屏
     system("clear");
-    // system("clear");   //清屏
     //第二步：将aDisplayBoardArray输出到屏幕上
-    for (i = 0; i < SIZE; i++) {
-        printf("%2d", 15 - i);
+    for (int i = 0; i < SIZE; i++) {
+        printf("%2d", SIZE - i);
         printf("%s\n", aDisplayBoardArray[i]);
     }
     //第三步：输出最下面的一行字母A B ....
     printf("  A B C D E F G H I J K L M N O\n");
 }
 
-char judge(int aRecordBoard[15][15], int i, int j, char current_player) {
+char judge(int aRecordBoard[SIZE][SIZE], int i, int j, char current_player) {
     char a, b, c, d;
 
     a = judge_line(aRecordBoard, i, j, current_player);
@@ -399,7 +403,8 @@ char judge(int aRecordBoard[15][15], int i, int j, char current_player) {
     }
     return 0;
 }
-char judge_line(int aRecordBoard[15][15], int i, int j, char current_player) {
+char judge_line(int aRecordBoard[SIZE][SIZE], int i, int j,
+                char current_player) {
     int count = 1;
     int k = j;
     while (k >= 0) {
@@ -409,7 +414,7 @@ char judge_line(int aRecordBoard[15][15], int i, int j, char current_player) {
             break;
     }
     k = j;
-    while (j <= 14) {
+    while (j < SIZE) {
         if (aRecordBoard[i][++k] == aRecordBoard[i][j])
             count++;
         else
@@ -420,7 +425,8 @@ char judge_line(int aRecordBoard[15][15], int i, int j, char current_player) {
     else
         return 0;
 }
-char judge_row(int aRecordBoard[15][15], int i, int j, char current_player) {
+char judge_row(int aRecordBoard[SIZE][SIZE], int i, int j,
+               char current_player) {
     int count = 1;
     int k = i;
     while (k >= 0) {
@@ -430,7 +436,7 @@ char judge_row(int aRecordBoard[15][15], int i, int j, char current_player) {
             break;
     }
     k = i;
-    while (i <= 14) {
+    while (i < SIZE) {
         if (aRecordBoard[++k][j] == aRecordBoard[i][j])
             count++;
         else
@@ -441,18 +447,18 @@ char judge_row(int aRecordBoard[15][15], int i, int j, char current_player) {
     else
         return 0;
 }
-char judge_down_up(int aRecordBoard[15][15], int i, int j,
+char judge_down_up(int aRecordBoard[SIZE][SIZE], int i, int j,
                    char current_player) {
     int count = 1;
     int k = i, l = j;
-    while (k >= 0 && l <= 14) {
+    while (k >= 0 && l < SIZE) {
         if (aRecordBoard[--k][++l] == aRecordBoard[i][j])
             count++;
         else
             break;
     }
     k = i, l = j;
-    while (k <= 14 && l >= 0) {
+    while (k < SIZE && l >= 0) {
         if (aRecordBoard[++k][--l] == aRecordBoard[i][j])
             count++;
         else
@@ -463,11 +469,11 @@ char judge_down_up(int aRecordBoard[15][15], int i, int j,
     else
         return 0;
 }
-char judge_up_down(int aRecordBoard[15][15], int i, int j,
+char judge_up_down(int aRecordBoard[SIZE][SIZE], int i, int j,
                    char current_player) {
     int count = 1;
     int k = i, l = j;
-    while (k <= 14 && l <= 14) {
+    while (k < SIZE && l < SIZE) {
         if (aRecordBoard[++k][++l] == aRecordBoard[i][j])
             count++;
         else
