@@ -4,6 +4,7 @@
 #include <string.h>
 
 #define SIZE 15
+// A safe choice
 #define CHARSIZE 4
 #define DISPLAY_SIZE (SIZE * CHARSIZE)
 #define MAXLINE 1000
@@ -347,6 +348,7 @@ void recordtoDisplayArray(void) {
     }
     //第二步：扫描aRecordBoard，当遇到非0的元素，将●或者◎复制到aDisplayBoardArray的相应位置上
     //注意：aDisplayBoardArray所记录的字符是中文字符，每个字符占2个字节。●和◎也是中文字符，每个也占2个字节。
+    int sizeOfChar = strlen(play1Pic);
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             char* playPic = NULL;
@@ -357,8 +359,8 @@ void recordtoDisplayArray(void) {
             } else {
                 continue;
             }
-            for (int k = 0; k <= strlen(playPic); ++k) {
-                aDisplayBoardArray[i][j * CHARSIZE + k] = playPic[k];
+            for (int k = 0; k < sizeOfChar; ++k) {
+                aDisplayBoardArray[i][j * sizeOfChar + k] = playPic[k];
             }
         }
     }
