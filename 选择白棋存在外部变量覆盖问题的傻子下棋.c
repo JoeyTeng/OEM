@@ -6,10 +6,6 @@
 #define CHARSIZE 4
 #define MAXLINE 1000
 
-void initRecordBoard(void);
-void recordtoDisplayArray(void);
-void displayBoard(void);
-
 //棋盘使用的是GBK编码，每一个中文字符占用2个字节。
 
 //棋盘基本模板
@@ -30,96 +26,109 @@ char play2CurrentPic[] = "△";
 //此数组用于记录棋盘格局
 int aRecordBoard[SIZE][SIZE];
 int current_row, current_col;
+
+void ren_ren(int aRecordBoard[15][15], char current_player);
+void strategy_1(int aRecordBoard[15][15], char current_player);
+void XingXingMove(char current_player);
+void strategy_2(int aRecordBoard[15][15], char current_player);
+void ShaZiMove(int aRecordBoard[15][15], int x1, int y1, int x2, int y2,
+               char current_player);
+
 int input(char current_player);
+void initRecordBoard(void);
+void recordtoDisplayArray(void);
+void displayBoard(void);
+
 char judge(int aRecordBoard[15][15], int i, int j, char current_player);
-int ren_ren(int aRecordBoard[15][15], char current_player);
-int strategy_1(int aRecordBoard[15][15], char current_player);
-int strategy_2(int aRecordBoard[15][15], char current_player);
+char judge_line(int aRecordBoard[15][15], int i, int j, char current_player);
+char judge_row(int aRecordBoard[15][15], int i, int j, char current_player);
+char judge_up_down(int aRecordBoard[15][15], int i, int j, char current_player);
+char judge_down_up(int aRecordBoard[15][15], int i, int j, char current_player);
+
 void Move(int n, int* x, int* y);
 
 int main(int argc, char* argv[]) {
-    printf("Welcome to FiveInRow, written by Tangyufei\n");
     int Mode;
+    char current_player;
+    printf("Welcome to FiveInRow, written by Tangyufei\n");
     printf("Mode choose:1 for ren_ren,2 for ren_computer\n");
     printf("Print q to quit anytime you want\n");
     scanf("%d", &Mode);
     if (Mode == 1) {
-        char current_player;
-        int ren;
-        ren = ren_ren(aRecordBoard, current_player);
+        ren_ren(aRecordBoard, current_player);
     } else if (Mode == 2) {
         int n;
         if (argc != 2 || (n = atoi(argv[1])) <= 0) {
             printf("Usage: ./FiveInRow n \n");
             printf("1 for XingXing, 2 for ShaZi, 3 for high\n");
-            return 1;
+            return 1;  // error code: 1
         }
         n = atoi(argv[1]);
         if (n == 1) {
             printf("ren_computer with strategy: 1\n");
-            char current_player;
-            int strategy1;
-            strategy1 = strategy_1(aRecordBoard, current_player);
+            strategy_1(aRecordBoard, current_player);
         } else if (n == 2) {
             printf("ren_computer with strategy: 2\n");
-            char current_player;
-            int strategy2;
-            strategy2 = strategy_2(aRecordBoard, current_player);
-        } else if (n == 3)
+            strategy_2(aRecordBoard, current_player);
+        } else if (n == 3) {
             printf("ren_computer with strategy: 3\n");
-        else if (n >= 4)
+        } else if (n >= 4) {
             printf("n is too large, it should be no more than 3\n");
+        }
         return 0;
-    } else if (Mode != 1 && Mode != 2)
+    } else if (Mode != 1 && Mode != 2) {
         printf("Mode choose,only 1 or 2\n");
+    }
     return 0;
 }
 
-int ren_ren(int aRecordBoard[15][15], char current_player) {
+void ren_ren(int aRecordBoard[15][15], char current_player) {
     int isquit = 0;
     int is_win;
+
     initRecordBoard();
     recordtoDisplayArray();
     displayBoard();
     current_player = 2;
     isquit = input(current_player);
-    if (isquit == 1) return 0;
+    if (isquit == 1) return;
     displayBoard();
     is_win = judge(aRecordBoard, current_row, current_col, current_player);
     while (!is_win) {
         current_player = (current_player) % 2 + 1;
         isquit = input(current_player);
-        if (isquit == 1) return 0;
+        if (isquit == 1) return;
         displayBoard();
         is_win = judge(aRecordBoard, current_row, current_col, current_player);
     }
-    return 0;
+    return;
 }
 
-int strategy_1(int aRecordBoard[15][15], char current_player) {
+void strategy_1(int aRecordBoard[15][15], char current_player) {
     int isquit = 0;
     int is_win = 0;
-    int XingXingMove(char current_player);
+    int Choice;
+
     initRecordBoard();
     recordtoDisplayArray();
     displayBoard();
-    int Choice;
+
     printf("Choice:1 for white and 2 for black.\n");
     scanf("%d", &Choice);
     current_player = Choice;
+
     if (Choice == 2) {
         current_player = 1;
         while (!is_win) {
             current_player = (current_player) % 2 + 1;
             isquit = input(current_player);
-            if (isquit == 1) return 0;
+            if (isquit == 1) return;
             displayBoard();
             is_win =
                 judge(aRecordBoard, current_row, current_col, current_player);
             if (is_win == 0) {
                 current_player = (current_player) % 2 + 1;
-                int XingXing;
-                XingXing = XingXingMove(current_player);
+                XingXingMove(current_player);
                 displayBoard();
                 is_win = judge(aRecordBoard, current_row, current_col,
                                current_player);
@@ -131,15 +140,14 @@ int strategy_1(int aRecordBoard[15][15], char current_player) {
     if (Choice == 1) {
         while (!is_win) {
             current_player = (current_player) % 2 + 1;
-            int XingXing;
-            XingXing = XingXingMove(current_player);
+            XingXingMove(current_player);
             displayBoard();
             is_win =
                 judge(aRecordBoard, current_row, current_col, current_player);
             if (is_win == 0) {
                 current_player = (current_player) % 2 + 1;
                 isquit = input(current_player);
-                if (isquit == 1) return 0;
+                if (isquit == 1) return;
                 displayBoard();
                 is_win = judge(aRecordBoard, current_row, current_col,
                                current_player);
@@ -147,54 +155,25 @@ int strategy_1(int aRecordBoard[15][15], char current_player) {
                 break;
         }
     }
-    return 0;
+    return;
 }
 
-int ShaZiMove(int aRecordBoard[15][15], int x1, int y1, int x2, int y2,
-              char current_player) {
-    void Move(int n, int* i, int* j);
-    int XingXingMove(char current_player);
-    int n = 0;
-    int tempx1 = x1, tempx2 = x2, tempy1 = y1, tempy2 = y2;
-    while (n < 8) {
-        x2 = tempx2, y2 = tempy2;
-        Move(n, &x2, &y2);
-        n = n + 1;
-        if (x2 < 0 || x2 > 14 || y2 < 0 || y2 > 14) continue;
-        if (aRecordBoard[x2][y2] == 0) break;
+void XingXingMove(char current_player) {
+    while (1) {
+        current_row = rand() % 15;
+        current_col = rand() % 15;
+        if (aRecordBoard[current_row][current_col] == 0) break;
     }
-    if (aRecordBoard[x2][y2] == 0) {
-        aRecordBoard[x2][y2] = current_player;
-        recordtoDisplayArray();
-        displayBoard();
-        return 0;
-    } else {
-        n = 0;
-        while (n < 8) {
-            x1 = tempx1, y1 = tempy1;
-            Move(n, &x1, &y1);
-            n = n + 1;
-            if (x1 < 0 || x1 > 14 || y1 < 0 || y1 > 14) continue;
-            if (aRecordBoard[x1][y1] == 0) break;
-        }
-        if (aRecordBoard[x1][y1] == 0) {
-            aRecordBoard[x1][y1] = current_player;
-            recordtoDisplayArray();
-            displayBoard();
-            return 0;
-        } else {
-            int XingXing;
-            XingXing = XingXingMove(current_player);
-        }
-    }
+    aRecordBoard[current_row][current_col] = current_player;
+    recordtoDisplayArray();
+    displayBoard();
 }
 
-int strategy_2(int aRecordBoard[15][15], char current_player) {
+void strategy_2(int aRecordBoard[15][15], char current_player) {
     int isquit = 0;
     int is_win = 0;
     int x1, x2, y1, y2;
-    int ShaZiMove(int aRecordBoard[15][15], int x1, int y1, int x2, int y2,
-                  char current_player);
+
     initRecordBoard();
     recordtoDisplayArray();
     displayBoard();
@@ -205,15 +184,15 @@ int strategy_2(int aRecordBoard[15][15], char current_player) {
     if (Choice == 2) {
         current_player = 2;
         isquit = input(current_player);
-        if (isquit == 1) return 0;
+        if (isquit == 1) return;
         displayBoard();
         x2 = current_row;
         y2 = current_col;
         current_player = (current_player) % 2 + 1;
-        int ShaZi;
+
         x1 = x2;
         y1 = y2;
-        ShaZi = ShaZiMove(aRecordBoard, x1, y1, x2, y2, current_player);
+        ShaZiMove(aRecordBoard, x1, y1, x2, y2, current_player);
         displayBoard();
         x1 = current_col;
         y1 = current_col;
@@ -221,7 +200,7 @@ int strategy_2(int aRecordBoard[15][15], char current_player) {
         while (!is_win) {
             current_player = (current_player) % 2 + 1;
             isquit = input(current_player);
-            if (isquit == 1) return 0;
+            if (isquit == 1) return;
             displayBoard();
             x2 = current_row;
             y2 = current_col;
@@ -229,8 +208,7 @@ int strategy_2(int aRecordBoard[15][15], char current_player) {
                 judge(aRecordBoard, current_row, current_col, current_player);
             if (is_win == 0) {
                 current_player = (current_player) % 2 + 1;
-                int ShaZi;
-                ShaZi = ShaZiMove(aRecordBoard, x1, y1, x2, y2, current_player);
+                ShaZiMove(aRecordBoard, x1, y1, x2, y2, current_player);
                 displayBoard();
                 x1 = current_row;
                 y1 = current_col;
@@ -249,14 +227,13 @@ int strategy_2(int aRecordBoard[15][15], char current_player) {
         x2 = 8, y2 = 8;
         current_player = current_player % 2 + 1;
         isquit = input(current_player);
-        if (isquit == 1) return 0;
+        if (isquit == 1) return;
         displayBoard();
         x1 = current_row;
         y1 = current_col;
         while (1) {
             current_player = 2;
-            int ShaZi;
-            ShaZi = ShaZiMove(aRecordBoard, x1, y1, x2, y2, current_player);
+            ShaZiMove(aRecordBoard, x1, y1, x2, y2, current_player);
             displayBoard();
             x2 = current_row;
             y2 = current_col;
@@ -265,7 +242,7 @@ int strategy_2(int aRecordBoard[15][15], char current_player) {
             if (is_win == 0) {
                 current_player = 1;
                 isquit = input(current_player);
-                if (isquit == 1) return 0;
+                if (isquit == 1) return;
                 displayBoard();
                 x1 = current_row;
                 y1 = current_col;
@@ -276,19 +253,42 @@ int strategy_2(int aRecordBoard[15][15], char current_player) {
             }
         }
     }
-    return 0;
+    return;
 }
 
-int XingXingMove(char current_player) {
-    while (1) {
-        current_row = rand() % 15;
-        current_col = rand() % 15;
-        if (aRecordBoard[current_row][current_col] == 0) break;
+void ShaZiMove(int aRecordBoard[15][15], int x1, int y1, int x2, int y2,
+               char current_player) {
+    int n = 0;
+    int tempx1 = x1, tempx2 = x2, tempy1 = y1, tempy2 = y2;
+
+    while (n < 8) {
+        x2 = tempx2, y2 = tempy2;
+        Move(n, &x2, &y2);
+        n = n + 1;
+        if (x2 < 0 || x2 > 14 || y2 < 0 || y2 > 14) continue;
+        if (aRecordBoard[x2][y2] == 0) break;
     }
-    aRecordBoard[current_row][current_col] = current_player;
-    recordtoDisplayArray();
-    displayBoard();
-    return 0;
+    if (aRecordBoard[x2][y2] == 0) {
+        aRecordBoard[x2][y2] = current_player;
+        recordtoDisplayArray();
+        displayBoard();
+    } else {
+        n = 0;
+        while (n < 8) {
+            x1 = tempx1, y1 = tempy1;
+            Move(n, &x1, &y1);
+            n = n + 1;
+            if (x1 < 0 || x1 > 14 || y1 < 0 || y1 > 14) continue;
+            if (aRecordBoard[x1][y1] == 0) break;
+        }
+        if (aRecordBoard[x1][y1] == 0) {
+            aRecordBoard[x1][y1] = current_player;
+            recordtoDisplayArray();
+            displayBoard();
+        } else {
+            XingXingMove(current_player);
+        }
+    }
 }
 
 // return 1 when need to quit, 0 if not;
@@ -382,14 +382,8 @@ void displayBoard(void) {
 }
 
 char judge(int aRecordBoard[15][15], int i, int j, char current_player) {
-    char judge_line(int aRecordBoard[15][15], int i, int j,
-                    char current_player);
-    char judge_row(int aRecordBoard[15][15], int i, int j, char current_player);
-    char judge_up_down(int aRecordBoard[15][15], int i, int j,
-                       char current_player);
-    char judge_down_up(int aRecordBoard[15][15], int i, int j,
-                       char current_player);
     char a, b, c, d;
+
     a = judge_line(aRecordBoard, i, j, current_player);
     b = judge_row(aRecordBoard, i, j, current_player);
     c = judge_up_down(aRecordBoard, i, j, current_player);
@@ -489,6 +483,7 @@ char judge_up_down(int aRecordBoard[15][15], int i, int j,
     else
         return 0;
 }
+
 void Move(int n, int* i, int* j) {
     switch (n) {
         case 0:
