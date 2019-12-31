@@ -5,6 +5,8 @@
 #define SIZE 15
 #define CHARSIZE 4
 #define MAXLINE 1000
+// indicate an empty space on the board; 255 is never used as a player marker
+#define EMPTY 255
 
 //棋盘使用的是GBK编码，每一个中文字符占用2个字节。
 
@@ -162,7 +164,7 @@ void XingXingMove(char current_player) {
     while (1) {
         current_row = rand() % 15;
         current_col = rand() % 15;
-        if (aRecordBoard[current_row][current_col] == 0) break;
+        if (aRecordBoard[current_row][current_col] == EMPTY) break;
     }
     aRecordBoard[current_row][current_col] = current_player;
     recordtoDisplayArray();
@@ -266,9 +268,9 @@ void ShaZiMove(int aRecordBoard[15][15], int x1, int y1, int x2, int y2,
         Move(n, &x2, &y2);
         n = n + 1;
         if (x2 < 0 || x2 > 14 || y2 < 0 || y2 > 14) continue;
-        if (aRecordBoard[x2][y2] == 0) break;
+        if (aRecordBoard[x2][y2] == EMPTY) break;
     }
-    if (aRecordBoard[x2][y2] == 0) {
+    if (aRecordBoard[x2][y2] == EMPTY) {
         aRecordBoard[x2][y2] = current_player;
         recordtoDisplayArray();
         displayBoard();
@@ -279,9 +281,9 @@ void ShaZiMove(int aRecordBoard[15][15], int x1, int y1, int x2, int y2,
             Move(n, &x1, &y1);
             n = n + 1;
             if (x1 < 0 || x1 > 14 || y1 < 0 || y1 > 14) continue;
-            if (aRecordBoard[x1][y1] == 0) break;
+            if (aRecordBoard[x1][y1] == EMPTY) break;
         }
-        if (aRecordBoard[x1][y1] == 0) {
+        if (aRecordBoard[x1][y1] == EMPTY) {
             aRecordBoard[x1][y1] = current_player;
             recordtoDisplayArray();
             displayBoard();
@@ -309,7 +311,7 @@ int input(char current_player) {
                 if ('A' <= d && d <= 'O') {
                     current_row = 15 - n;
                     current_col = d - 'A';
-                    if (aRecordBoard[current_row][current_col] == 0)
+                    if (aRecordBoard[current_row][current_col] == EMPTY)
                         aRecordBoard[current_row][current_col] = current_player;
                     else {
                         printf("Position occupied!\n");
@@ -319,7 +321,7 @@ int input(char current_player) {
                 if ('a' <= d && d <= 'o') {
                     current_row = 15 - n;
                     current_col = d - 'a';
-                    if (aRecordBoard[current_row][current_col] == 0)
+                    if (aRecordBoard[current_row][current_col] == EMPTY)
                         aRecordBoard[current_row][current_col] = current_player;
                     else {
                         printf("Position occupied!\n");
@@ -342,7 +344,7 @@ void initRecordBoard(void) {
     //通过双重循环，将aRecordBoard清0
     int i, j;
     for (i = 0; i < SIZE; i++) {
-        for (j = 0; j < CHARSIZE; j++) aRecordBoard[i][j] = 0;
+        for (j = 0; j < CHARSIZE; j++) aRecordBoard[i][j] = EMPTY;
     }
 }
 //将aRecordBoard中记录的棋子位置，转化到aDisplayBoardArray中
