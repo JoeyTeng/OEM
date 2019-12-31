@@ -49,13 +49,10 @@ void recordtoDisplayArray(void);
 void displayBoard(void);
 
 char judge(int aRecordBoard[SIZE][SIZE], int i, int j, char current_player);
-char judge_line(int aRecordBoard[SIZE][SIZE], int i, int j,
-                char current_player);
-char judge_row(int aRecordBoard[SIZE][SIZE], int i, int j, char current_player);
-char judge_up_down(int aRecordBoard[SIZE][SIZE], int i, int j,
-                   char current_player);
-char judge_down_up(int aRecordBoard[SIZE][SIZE], int i, int j,
-                   char current_player);
+char judge_line(int aRecordBoard[SIZE][SIZE], int i, int j);
+char judge_row(int aRecordBoard[SIZE][SIZE], int i, int j);
+char judge_up_down(int aRecordBoard[SIZE][SIZE], int i, int j);
+char judge_down_up(int aRecordBoard[SIZE][SIZE], int i, int j);
 
 void Move(int n, int* x, int* y);
 
@@ -382,10 +379,10 @@ void displayBoard(void) {
 char judge(int aRecordBoard[SIZE][SIZE], int i, int j, char current_player) {
     char a, b, c, d;
 
-    a = judge_line(aRecordBoard, i, j, current_player);
-    b = judge_row(aRecordBoard, i, j, current_player);
-    c = judge_up_down(aRecordBoard, i, j, current_player);
-    d = judge_down_up(aRecordBoard, i, j, current_player);
+    a = judge_line(aRecordBoard, i, j);
+    b = judge_row(aRecordBoard, i, j);
+    c = judge_up_down(aRecordBoard, i, j);
+    d = judge_down_up(aRecordBoard, i, j);
     if (a == 1 || b == 1 || c == 1 || d == 1) {
         displayBoard();
         if (current_player == 1)
@@ -396,8 +393,7 @@ char judge(int aRecordBoard[SIZE][SIZE], int i, int j, char current_player) {
     }
     return 0;
 }
-char judge_line(int aRecordBoard[SIZE][SIZE], int i, int j,
-                char current_player) {
+char judge_line(int aRecordBoard[SIZE][SIZE], int i, int j) {
     int count = 1;
     int k = j;
     while (k >= 0) {
@@ -418,8 +414,7 @@ char judge_line(int aRecordBoard[SIZE][SIZE], int i, int j,
     else
         return 0;
 }
-char judge_row(int aRecordBoard[SIZE][SIZE], int i, int j,
-               char current_player) {
+char judge_row(int aRecordBoard[SIZE][SIZE], int i, int j) {
     int count = 1;
     int k = i;
     while (k >= 0) {
@@ -440,8 +435,7 @@ char judge_row(int aRecordBoard[SIZE][SIZE], int i, int j,
     else
         return 0;
 }
-char judge_down_up(int aRecordBoard[SIZE][SIZE], int i, int j,
-                   char current_player) {
+char judge_down_up(int aRecordBoard[SIZE][SIZE], int i, int j) {
     int count = 1;
     int k = i, l = j;
     while (k >= 0 && l < SIZE) {
@@ -462,8 +456,7 @@ char judge_down_up(int aRecordBoard[SIZE][SIZE], int i, int j,
     else
         return 0;
 }
-char judge_up_down(int aRecordBoard[SIZE][SIZE], int i, int j,
-                   char current_player) {
+char judge_up_down(int aRecordBoard[SIZE][SIZE], int i, int j) {
     int count = 1;
     int k = i, l = j;
     while (k < SIZE && l < SIZE) {
