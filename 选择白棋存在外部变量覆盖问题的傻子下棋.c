@@ -30,6 +30,9 @@ char play2CurrentPic[] = "△";
 int aRecordBoard[SIZE][SIZE];
 int current_row, current_col;
 
+// used for fgets & sscanf for input
+char buff[MAXLINE];
+
 void ren_ren(int aRecordBoard[SIZE][SIZE], char current_player);
 void strategy_1(int aRecordBoard[SIZE][SIZE], char current_player);
 void XingXingMove(char current_player);
@@ -37,6 +40,7 @@ void strategy_2(int aRecordBoard[SIZE][SIZE], char current_player);
 void ShaZiMove(int aRecordBoard[SIZE][SIZE], int x1, int y1, int x2, int y2,
                char current_player);
 
+int inputGetInt();
 int input(char current_player);
 void initRecordBoard(void);
 void recordtoDisplayArray(void);
@@ -59,7 +63,7 @@ int main(int argc, char* argv[]) {
     printf("Welcome to FiveInRow, written by Tangyufei\n");
     printf("Mode choose:1 for ren_ren,2 for ren_computer\n");
     printf("Print q to quit anytime you want\n");
-    scanf("%d", &Mode);
+    Mode = inputGetInt();
     if (Mode == 1) {
         ren_ren(aRecordBoard, current_player);
     } else if (Mode == 2) {
@@ -120,7 +124,8 @@ void strategy_1(int aRecordBoard[SIZE][SIZE], char current_player) {
     displayBoard();
 
     printf("Choice:1 for white and 2 for black.\n");
-    scanf("%d", &Choice);
+    // scanf("%d", &Choice);
+    Choice = inputGetInt();
     current_player = Choice;
 
     if (Choice == 2) {
@@ -185,7 +190,8 @@ void strategy_2(int aRecordBoard[SIZE][SIZE], char current_player) {
     displayBoard();
     int Choice;
     printf("Choice:1 for white and 2 for black.\n");
-    scanf("%d", &Choice);
+    // scanf("%d", &Choice);
+    Choice = inputGetInt();
     current_player = Choice;
     if (Choice == 2) {
         current_player = 2;
@@ -294,7 +300,11 @@ void ShaZiMove(int aRecordBoard[SIZE][SIZE], int x1, int y1, int x2, int y2,
         } else {
             XingXingMove(current_player);
         }
-    }
+}
+
+int inputGetInt() {
+    fgets(buff, MAXLINE - 1, stdin);
+    return atoi(buff);
 }
 
 // return 1 when need to quit, 0 if not;
@@ -304,14 +314,17 @@ int input(char current_player) {
     char d;
     int n;
     do {
-        scanf("%c", &d);
-        if (d == 'q') {
+        printf("Input your cheese:\n");
+        fgets(buff, MAXLINE - 1, stdin);
+        if (buff[0] == '\n') {
+            continue;
+        }
+        sscanf(buff, "%c", &d);
+        d = toupper(d);
             printf("Player %d quit!\n", current_player);
             return 1;
-        } else {
-            scanf("%d", &n);
-            if ((('A' <= d && d <= 'O') || ('a' <= d && d <= 'o')) && 1 <= n &&
-                n <= 15) {
+        n = atoi(buff + 1);
+        if ('A' <= d && d <= 'O' && 1 <= n && n <= SIZE) {
                 if ('A' <= d && d <= 'O') {
                 current_row = SIZE - n;
                     current_col = d - 'A';
