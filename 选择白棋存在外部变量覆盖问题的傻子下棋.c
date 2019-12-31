@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -310,7 +311,6 @@ int inputGetInt() {
 // return 1 when need to quit, 0 if not;
 // will recordtoDisplayArray and displayBoard
 int input(char current_player) {
-    printf("Input your cheese:\n");
     char d;
     int n;
     do {
@@ -321,8 +321,10 @@ int input(char current_player) {
         }
         sscanf(buff, "%c", &d);
         d = toupper(d);
+        if (d == 'Q') {
             printf("Player %d quit!\n", current_player);
             return 1;
+        }
         n = atoi(buff + 1);
         if ('A' <= d && d <= 'O' && 1 <= n && n <= SIZE) {
                 if ('A' <= d && d <= 'O') {
@@ -332,27 +334,15 @@ int input(char current_player) {
                         aRecordBoard[current_row][current_col] = current_player;
                     else {
                         printf("Position occupied!\n");
-                        input(current_player);
-                    }
-                }
-                if ('a' <= d && d <= 'o') {
-                    current_row = 15 - n;
-                    current_col = d - 'a';
-                    if (aRecordBoard[current_row][current_col] == EMPTY)
-                        aRecordBoard[current_row][current_col] = current_player;
-                    else {
-                        printf("Position occupied!\n");
-                        input(current_player);
+                    continue;
                     }
                 }
                 recordtoDisplayArray();
                 displayBoard();
-                getchar();  // remove '\n'
                 return 0;
             } else {
                 printf("Please input again:\n");
             }
-        }
     } while (1);
 }
 
