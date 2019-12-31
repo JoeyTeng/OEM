@@ -62,7 +62,7 @@ void Move(int n, int* x, int* y);
 int main(int argc, char* argv[]) {
     int Mode;
     char current_player;
-    printf("Welcome to FiveInRow, written by Tangyufei\n");
+    printf("Welcome to FiveInRow, written by Tang Yufei\n");
     printf("Mode choose:1 for ren_ren,2 for ren_computer\n");
     printf("Print q to quit anytime you want\n");
     Mode = inputGetInt();
