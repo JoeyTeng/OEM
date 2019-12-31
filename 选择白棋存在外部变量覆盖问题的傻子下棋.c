@@ -9,7 +9,7 @@
 #define DISPLAY_SIZE (SIZE * CHARSIZE)
 #define MAXLINE 1000
 // indicate an empty space on the board; 255 is never used as a player marker
-#define EMPTY 255
+#define EMPTY 0
 
 //棋盘使用的是GBK编码，每一个中文字符占用2个字节。
 
