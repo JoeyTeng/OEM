@@ -96,18 +96,14 @@ void ren_ren(int aRecordBoard[SIZE][SIZE], char current_player) {
     int is_win;
 
     initRecordBoard();
-    recordtoDisplayArray();
-    displayBoard();
     current_player = 2;
     isquit = input(current_player);
     if (isquit == 1) return;
-    displayBoard();
     is_win = judge(aRecordBoard, current_row, current_col, current_player);
     while (!is_win) {
         current_player = (current_player) % 2 + 1;
         isquit = input(current_player);
         if (isquit == 1) return;
-        displayBoard();
         is_win = judge(aRecordBoard, current_row, current_col, current_player);
     }
     return;
@@ -119,8 +115,6 @@ void strategy_1(int aRecordBoard[SIZE][SIZE], char current_player) {
     int Choice;
 
     initRecordBoard();
-    recordtoDisplayArray();
-    displayBoard();
 
     printf("Choice:1 for white and 2 for black.\n");
     // scanf("%d", &Choice);
@@ -133,13 +127,11 @@ void strategy_1(int aRecordBoard[SIZE][SIZE], char current_player) {
             current_player = (current_player) % 2 + 1;
             isquit = input(current_player);
             if (isquit == 1) return;
-            displayBoard();
             is_win =
                 judge(aRecordBoard, current_row, current_col, current_player);
             if (is_win == 0) {
                 current_player = (current_player) % 2 + 1;
                 XingXingMove(current_player);
-                displayBoard();
                 is_win = judge(aRecordBoard, current_row, current_col,
                                current_player);
             } else {
@@ -151,14 +143,12 @@ void strategy_1(int aRecordBoard[SIZE][SIZE], char current_player) {
         while (!is_win) {
             current_player = (current_player) % 2 + 1;
             XingXingMove(current_player);
-            displayBoard();
             is_win =
                 judge(aRecordBoard, current_row, current_col, current_player);
             if (is_win == 0) {
                 current_player = (current_player) % 2 + 1;
                 isquit = input(current_player);
                 if (isquit == 1) return;
-                displayBoard();
                 is_win = judge(aRecordBoard, current_row, current_col,
                                current_player);
             } else
@@ -175,8 +165,6 @@ void XingXingMove(char current_player) {
         if (aRecordBoard[current_row][current_col] == EMPTY) break;
     }
     aRecordBoard[current_row][current_col] = current_player;
-    recordtoDisplayArray();
-    displayBoard();
 }
 
 void strategy_2(int aRecordBoard[SIZE][SIZE], char current_player) {
@@ -195,8 +183,6 @@ void strategy_2(int aRecordBoard[SIZE][SIZE], char current_player) {
         x[1] = x[2] = 8;
         y[1] = y[2] = 8;
         aRecordBoard[x[current_player]][y[current_player]] = current_player;
-        recordtoDisplayArray();
-        displayBoard();
     }
     current_player = Choice;
 
@@ -207,7 +193,6 @@ void strategy_2(int aRecordBoard[SIZE][SIZE], char current_player) {
         } else {
             ShaZiMove(aRecordBoard, x, y, current_player);
         }
-        displayBoard();
         x[current_player] = current_row;
         y[current_player] = current_col;
         is_win = judge(aRecordBoard, current_row, current_col, current_player);
@@ -233,8 +218,6 @@ void ShaZiMove(int aRecordBoard[SIZE][SIZE], int inputX[3], int inputY[3],
         }
         if (aRecordBoard[x[i]][y[i]] == EMPTY) {
             aRecordBoard[x[i]][y[i]] = current_player;
-            recordtoDisplayArray();
-            displayBoard();
             current_row = x[i];
             current_col = y[i];
             return;
@@ -248,11 +231,13 @@ int inputGetInt() {
     return atoi(buff);
 }
 
-// return 1 when need to quit, 0 if not;
-// will recordtoDisplayArray and displayBoard
+// return 1 when need to quit, 0 if not; will displayBoard
 int input(char current_player) {
     char d;
     int n;
+
+    displayBoard();
+
     do {
         printf("Input your cheese:\n");
         fgets(buff, MAXLINE - 1, stdin);
@@ -277,7 +262,6 @@ int input(char current_player) {
                     continue;
                 }
             }
-            recordtoDisplayArray();
             displayBoard();
             return 0;
         } else {
@@ -320,6 +304,8 @@ void recordtoDisplayArray(void) {
 
 //显示棋盘格局
 void displayBoard(void) {
+    recordtoDisplayArray();
+
     //第一步：清屏
     system("clear");
     //第二步：将aDisplayBoardArray输出到屏幕上
