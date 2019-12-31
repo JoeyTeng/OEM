@@ -286,19 +286,6 @@ void ShaZiMove(int aRecordBoard[SIZE][SIZE], int x1, int y1, int x2, int y2,
         recordtoDisplayArray();
         displayBoard();
     } else {
-        n = 0;
-        while (n < 8) {
-            x1 = tempx1, y1 = tempy1;
-            Move(n, &x1, &y1);
-            n = n + 1;
-            if (x1 < 0 || x1 > 14 || y1 < 0 || y1 > 14) continue;
-            if (aRecordBoard[x1][y1] == EMPTY) break;
-        }
-        if (aRecordBoard[x1][y1] == EMPTY) {
-            aRecordBoard[x1][y1] = current_player;
-            recordtoDisplayArray();
-            displayBoard();
-        } else {
             XingXingMove(current_player);
         }
 }
