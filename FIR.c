@@ -39,7 +39,7 @@ void ren_ren(int aRecordBoard[SIZE][SIZE], char current_player);
 void strategy_1(int aRecordBoard[SIZE][SIZE], char current_player);
 void XingXingMove(char current_player);
 void strategy_2(int aRecordBoard[SIZE][SIZE], char current_player);
-void ShaZiMove(int aRecordBoard[SIZE][SIZE], int x1, int y1, int x2, int y2,
+void ShaZiMove(int aRecordBoard[SIZE][SIZE], int inputX[3], int inputY[3],
                char current_player);
 
 int inputGetInt();
@@ -182,110 +182,65 @@ void XingXingMove(char current_player) {
 void strategy_2(int aRecordBoard[SIZE][SIZE], char current_player) {
     int isquit = 0;
     int is_win = 0;
-    int x1, x2, y1, y2;
+    int Choice;
+    int x[3], y[3];
 
     initRecordBoard();
-    recordtoDisplayArray();
-    displayBoard();
-    int Choice;
-    printf("Choice:1 for white and 2 for black.\n");
-    // scanf("%d", &Choice);
-    Choice = inputGetInt();
-    current_player = Choice;
-    if (Choice == 2) {
-        current_player = 2;
-        isquit = input(current_player);
-        if (isquit == 1) return;
-        displayBoard();
-        x2 = current_row;
-        y2 = current_col;
-        current_player = (current_player) % 2 + 1;
 
-        x1 = x2;
-        y1 = y2;
-        ShaZiMove(aRecordBoard, x1, y1, x2, y2, current_player);
-        displayBoard();
-        x1 = current_col;
-        y1 = current_col;
-        is_win = judge(aRecordBoard, current_row, current_col, current_player);
-        while (!is_win) {
-            current_player = (current_player) % 2 + 1;
-            isquit = input(current_player);
-            if (isquit == 1) return;
-            displayBoard();
-            x2 = current_row;
-            y2 = current_col;
-            is_win =
-                judge(aRecordBoard, current_row, current_col, current_player);
-            if (is_win == 0) {
-                current_player = (current_player) % 2 + 1;
-                ShaZiMove(aRecordBoard, x1, y1, x2, y2, current_player);
-                displayBoard();
-                x1 = current_row;
-                y1 = current_col;
-                is_win = judge(aRecordBoard, current_row, current_col,
-                               current_player);
-            } else {
-                break;
-            }
-        }
-    }
+    printf("Choice:1 for white and 2 for black.\n");
+    Choice = inputGetInt();
+
     if (Choice == 1) {
         current_player = 2;
-        aRecordBoard[8][8] = 2;
+        x[1] = x[2] = 8;
+        y[1] = y[2] = 8;
+        aRecordBoard[x[current_player]][y[current_player]] = current_player;
         recordtoDisplayArray();
         displayBoard();
-        x2 = 8, y2 = 8;
-        current_player = current_player % 2 + 1;
-        isquit = input(current_player);
-        if (isquit == 1) return;
-        displayBoard();
-        x1 = current_row;
-        y1 = current_col;
-        while (1) {
-            current_player = 2;
-            ShaZiMove(aRecordBoard, x1, y1, x2, y2, current_player);
-            displayBoard();
-            x2 = current_row;
-            y2 = current_col;
-            is_win =
-                judge(aRecordBoard, current_row, current_col, current_player);
-            if (is_win == 0) {
-                current_player = 1;
-                isquit = input(current_player);
-                if (isquit == 1) return;
-                displayBoard();
-                x1 = current_row;
-                y1 = current_col;
-                is_win = judge(aRecordBoard, current_row, current_col,
-                               current_player);
-            } else {
-                break;
-            }
-        }
     }
-    return;
+    current_player = Choice;
+
+    while (!is_win) {
+        if (current_player == Choice) {
+            isquit = input(current_player);
+            if (isquit) return;
+        } else {
+            ShaZiMove(aRecordBoard, x, y, current_player);
+        }
+        displayBoard();
+        x[current_player] = current_row;
+        y[current_player] = current_col;
+        is_win = judge(aRecordBoard, current_row, current_col, current_player);
+        current_player = (current_player) % 2 + 1;
+    }
 }
 
-void ShaZiMove(int aRecordBoard[SIZE][SIZE], int x1, int y1, int x2, int y2,
+void ShaZiMove(int aRecordBoard[SIZE][SIZE], int inputX[3], int inputY[3],
                char current_player) {
     int n = 0;
-    int tempx1 = x1, tempx2 = x2, tempy1 = y1, tempy2 = y2;
-
-    while (n < 8) {
-        x2 = tempx2, y2 = tempy2;
-        Move(n, &x2, &y2);
-        n = n + 1;
-        if (x2 < 0 || x2 >= SIZE || y2 < 0 || y2 >= SIZE) continue;
-        if (aRecordBoard[x2][y2] == EMPTY) break;
+    int x[3], y[3];
+    for (int i = 1; i < 3; i++) {
+        x[i] = inputX[i];
+        y[i] = inputY[i];
     }
-    if (aRecordBoard[x2][y2] == EMPTY) {
-        aRecordBoard[x2][y2] = current_player;
-        recordtoDisplayArray();
-        displayBoard();
-    } else {
-            XingXingMove(current_player);
+    // start with 2: black
+    for (int i = 2; i > 0; i--) {
+        while (n < 8) {
+            Move(n, &x[i], &y[i]);
+            n = n + 1;
+            if (x[i] < 0 || x[i] >= SIZE || y[i] < 0 || y[i] >= SIZE) continue;
+            if (aRecordBoard[x[i]][y[i]] == EMPTY) break;
         }
+        if (aRecordBoard[x[i]][y[i]] == EMPTY) {
+            aRecordBoard[x[i]][y[i]] = current_player;
+            recordtoDisplayArray();
+            displayBoard();
+            current_row = x[i];
+            current_col = y[i];
+            return;
+        }
+    }
+    XingXingMove(current_player);
 }
 
 int inputGetInt() {
