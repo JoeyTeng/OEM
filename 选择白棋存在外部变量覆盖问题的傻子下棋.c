@@ -315,22 +315,22 @@ int input(char current_player) {
         }
         n = atoi(buff + 1);
         if ('A' <= d && d <= 'O' && 1 <= n && n <= SIZE) {
-                if ('A' <= d && d <= 'O') {
+            if ('A' <= d && d <= 'O') {
                 current_row = SIZE - n;
-                    current_col = d - 'A';
-                    if (aRecordBoard[current_row][current_col] == EMPTY)
-                        aRecordBoard[current_row][current_col] = current_player;
-                    else {
-                        printf("Position occupied!\n");
+                current_col = d - 'A';
+                if (aRecordBoard[current_row][current_col] == EMPTY) {
+                    aRecordBoard[current_row][current_col] = current_player;
+                } else {
+                    printf("Position occupied!\n");
                     continue;
-                    }
                 }
-                recordtoDisplayArray();
-                displayBoard();
-                return 0;
-            } else {
-                printf("Please input again:\n");
             }
+            recordtoDisplayArray();
+            displayBoard();
+            return 0;
+        } else {
+            printf("Please input again:\n");
+        }
     } while (1);
 }
 
