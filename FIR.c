@@ -42,6 +42,7 @@ void strategy_2(char current_player);
 void ShaZiMove(int inputX[3], int inputY[3], char current_player);
 
 int inputGetInt();
+char validateMove(int x, int y);
 int input(char current_player);
 void initRecordBoard(void);
 void recordtoDisplayArray(void);
@@ -195,20 +196,19 @@ void strategy_2(char current_player) {
 }
 
 void ShaZiMove(int inputX[3], int inputY[3], char current_player) {
-    int n = 0;
     int x[3], y[3];
-    for (int i = 1; i < 3; i++) {
-        x[i] = inputX[i];
-        y[i] = inputY[i];
-    }
+
     // start with 2: black
     for (int i = 2; i > 0; i--) {
-        while (n < 8) {
+        int n = 0;
+        do {
+            for (int i = 1; i < 3; i++) {
+                x[i] = inputX[i];
+                y[i] = inputY[i];
+            }
             Move(n, &x[i], &y[i]);
             n = n + 1;
-            if (x[i] < 0 || x[i] >= SIZE || y[i] < 0 || y[i] >= SIZE) continue;
-            if (aRecordBoard[x[i]][y[i]] == EMPTY) break;
-        }
+        } while (n < 8 && !validateMove(x[i], y[i]));
         if (aRecordBoard[x[i]][y[i]] == EMPTY) {
             aRecordBoard[x[i]][y[i]] = current_player;
             current_row = x[i];
@@ -224,11 +224,16 @@ int inputGetInt() {
     return atoi(buff);
 }
 
+char validateMove(int x, int y) {
+    if (x >= 0 && x < SIZE && y >= 0 && y < SIZE &&
+        aRecordBoard[x][y] == EMPTY) {
+        return 1;
+    }
+    return 0;
+}
+
 // return 1 when need to quit, 0 if not; will displayBoard
 int input(char current_player) {
-    char d;
-    int n;
-
     displayBoard();
 
     do {
@@ -237,28 +242,24 @@ int input(char current_player) {
         if (buff[0] == '\n') {
             continue;
         }
+        char d;
         sscanf(buff, "%c", &d);
         d = toupper(d);
         if (d == 'Q') {
             printf("Player %d quit!\n", current_player);
             return 1;
         }
-        n = atoi(buff + 1);
-        if ('A' <= d && d <= 'O' && 1 <= n && n <= SIZE) {
-            if ('A' <= d && d <= 'O') {
-                current_row = SIZE - n;
-                current_col = d - 'A';
-                if (aRecordBoard[current_row][current_col] == EMPTY) {
-                    aRecordBoard[current_row][current_col] = current_player;
-                } else {
-                    printf("Position occupied!\n");
-                    continue;
-                }
-            }
+        int n = atoi(buff + 1);
+        int x = SIZE - n;
+        int y = d - 'A';
+        if (validateMove(x, y)) {
+            current_row = x;
+            current_col = y;
+            aRecordBoard[current_row][current_col] = current_player;
             displayBoard();
             return 0;
         } else {
-            printf("Please input again:\n");
+            printf("Invalid Position! Please input again:\n");
         }
     } while (1);
 }
