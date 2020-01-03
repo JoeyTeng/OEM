@@ -35,7 +35,7 @@ int current_row, current_col;
 // used for fgets & sscanf for input
 char buff[MAXLINE];
 
-void ren_ren(char current_player);
+void PvP();
 void strategy_1(char current_player);
 void XingXingMove(char current_player);
 void strategy_2(char current_player);
@@ -60,11 +60,14 @@ int main(int argc, char* argv[]) {
     int Mode;
     char current_player;
     printf("Welcome to FiveInRow, written by Tang Yufei\n");
-    printf("Mode choose:1 for ren_ren,2 for ren_computer\n");
+    printf(
+        "Choose Play Mode:\n"
+        "  1 for PvP (player vs player),\n"
+        "  2 for PvE (player vs computer)\n");
     printf("Key in q to quit anytime you want\n");
     Mode = inputGetInt();
     if (Mode == 1) {
-        ren_ren(current_player);
+        PvP();
     } else if (Mode == 2) {
         int n;
         if (argc != 2 || (n = atoi(argv[1])) <= 0) {
@@ -91,9 +94,15 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void ren_ren(char current_player) {
-    int isquit = 0;
-    int is_win;
+void PvP() {
+    initRecordBoard();
+
+    for (int current_player = 2;
+         !input(current_player) &&
+         !judge(current_row, current_col, current_player);
+         current_player ^= 3) {
+    }
+}
 
     initRecordBoard();
     current_player = 2;
