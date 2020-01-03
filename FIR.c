@@ -166,6 +166,7 @@ void PvE(strategy func) {
         } else {
             func(current_player);
         }
+        aRecordBoard[current_row][current_col] = current_player;
         history[0][current_player][turns] = current_row;
         history[1][current_player][turns] = current_col;
     }
@@ -177,7 +178,6 @@ void XingXingMove(char current_player) {
         current_row = rand() % SIZE;
         current_col = rand() % SIZE;
     } while (aRecordBoard[current_row][current_col] != EMPTY);
-    aRecordBoard[current_row][current_col] = current_player;
 }
 
 void ShaZiMove(char current_player) {
@@ -199,8 +199,9 @@ void ShaZiMove(char current_player) {
             move(n, &x, &y);
             n = n + 1;
         } while (n < 8 && !validMove(x, y));
-        if (aRecordBoard[x][y] == EMPTY) {
-            aRecordBoard[x][y] = current_player;
+        if (validMove(x, y)) {
+            current_row = x;
+            current_col = y;
             return;
         }
     }
@@ -239,14 +240,12 @@ void highLevel(char current_player) {
         // place previous predicted moves (DFS)
         for (int i = 0; i < step; i += 2) {
             if (aRecordBoard[attemptX[i]][attemptY[i]] != EMPTY) {
-                printf("WARINING: Unexpected behaviour, make random move.\n");
                 goto FALLBACK;
             }
             aRecordBoard[attemptX[i]][attemptY[i]] = current_player;
         }
         for (int i = 1; i < step; i += 2) {
             if (aRecordBoard[attemptX[i]][attemptY[i]] != EMPTY) {
-                printf("WARINING: Unexpected behaviour, make random move.\n");
                 goto FALLBACK;
             }
             aRecordBoard[attemptX[i]][attemptY[i]] = current_player ^ 3;
@@ -297,8 +296,12 @@ void highLevel(char current_player) {
             aRecordBoard[attemptX[i]][attemptY[i]] = EMPTY;
         }
     }
+    // ??
+    current_row = attemptX[step - 1];
+    current_col = attemptY[step - 1];
     return;
 FALLBACK:
+    printf("WARINING: Fallback, make random move.\n");
     XingXingMove(current_player);
     return;
 }
@@ -406,7 +409,6 @@ int input(char current_player) {
         if (validMove(x, y)) {
             current_row = x;
             current_col = y;
-            aRecordBoard[current_row][current_col] = current_player;
             displayBoard();
             return 0;
         } else {
