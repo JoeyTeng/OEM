@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     char current_player;
     printf("Welcome to FiveInRow, written by Tang Yufei\n");
     printf("Mode choose:1 for ren_ren,2 for ren_computer\n");
-    printf("Print q to quit anytime you want\n");
+    printf("Key in q to quit anytime you want\n");
     Mode = inputGetInt();
     if (Mode == 1) {
         ren_ren(current_player);
