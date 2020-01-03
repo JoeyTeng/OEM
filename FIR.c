@@ -154,11 +154,10 @@ void strategy_1(char current_player) {
 }
 
 void XingXingMove(char current_player) {
-    while (1) {
+    do {
         current_row = rand() % SIZE;
         current_col = rand() % SIZE;
-        if (aRecordBoard[current_row][current_col] == EMPTY) break;
-    }
+    } while (aRecordBoard[current_row][current_col] != EMPTY);
     aRecordBoard[current_row][current_col] = current_player;
 }
 
