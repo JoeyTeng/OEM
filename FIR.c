@@ -46,19 +46,22 @@ void XingXingMove(char current_player, int[], int[]);
 void ShaZiMove(char current_player, int inputX[], int inputY[]);
 
 int inputGetInt();
-char validateMove(int x, int y);
+char validPos(int x, int y);
+char validMove(int x, int y);
 int input(char current_player);
 void initRecordBoard(void);
 void recordtoDisplayArray(void);
 void displayBoard(void);
 
-char judge(int i, int j, char current_player);
-char judge_line(int i, int j);
-char judge_row(int i, int j);
-char judge_up_down(int i, int j);
-char judge_down_up(int i, int j);
+char checkEndGame(char current_player, int x, int y);
+char judge(int i, int j);
 
-void Move(int n, int* x, int* y);
+void move(int n, int* x, int* y);
+
+char checkForbiddenMoves(int x, int y);
+char checkDoubleThree(int x, int y);
+char checkDoubleFour(int x, int y);
+char checkOverline(int x, int y);
 
 int main(int argc, char* argv[]) {
     printf("Welcome to FiveInRow, written by Tang Yufei\n");
@@ -110,7 +113,7 @@ int main(int argc, char* argv[]) {
 void PvP() {
     for (int current_player = 2;
          !input(current_player) &&
-         !judge(current_row, current_col, current_player);
+         !checkEndGame(current_player, current_row, current_col);
          current_player ^= 3) {
     }
 }
@@ -136,7 +139,7 @@ void PvE(strategy func) {
     }
 
     for (current_player = 2;
-         !judge(current_row, current_col, current_player ^ 3);
+         !checkEndGame(current_player ^ 3, current_row, current_col);
          current_player ^= 3) {
         if (current_player == choice) {
             if (input(current_player)) {  // quit when ret != 0
@@ -170,9 +173,9 @@ void ShaZiMove(char current_player, int inputX[], int inputY[]) {
                 x[i] = inputX[i];
                 y[i] = inputY[i];
             }
-            Move(n, &x[i], &y[i]);
+            move(n, &x[i], &y[i]);
             n = n + 1;
-        } while (n < 8 && !validateMove(x[i], y[i]));
+        } while (n < 8 && !validMove(x[i], y[i]));
         if (aRecordBoard[x[i]][y[i]] == EMPTY) {
             aRecordBoard[x[i]][y[i]] = current_player;
             current_row = x[i];
@@ -188,12 +191,12 @@ int inputGetInt() {
     return atoi(buff);
 }
 
-char validateMove(int x, int y) {
-    if (x >= 0 && x < SIZE && y >= 0 && y < SIZE &&
-        aRecordBoard[x][y] == EMPTY) {
-        return 1;
-    }
-    return 0;
+char validPos(int x, int y) {
+    return (x >= 0 && x < SIZE && y >= 0 && y < SIZE);
+}
+
+char validMove(int x, int y) {
+    return (validPos(x, y) && aRecordBoard[x][y] == EMPTY);
 }
 
 // return 1 when need to quit, 0 if not; will displayBoard
@@ -216,7 +219,7 @@ int input(char current_player) {
         int n = atoi(buff + 1);
         int x = SIZE - n;
         int y = d - 'A';
-        if (validateMove(x, y)) {
+        if (validMove(x, y)) {
             current_row = x;
             current_col = y;
             aRecordBoard[current_row][current_col] = current_player;
@@ -265,7 +268,8 @@ void displayBoard(void) {
     recordtoDisplayArray();
 
     //第一步：清屏
-    system("clear");
+    // TODO: DEBUG:
+    // system("clear");
     //第二步：将aDisplayBoardArray输出到屏幕上
     for (int i = 0; i < SIZE; i++) {
         printf("%2d", SIZE - i);
@@ -279,136 +283,106 @@ void displayBoard(void) {
     }
 }
 
-char judge(int i, int j, char current_player) {
-    char a, b, c, d;
-
-    a = judge_line(i, j);
-    b = judge_row(i, j);
-    c = judge_up_down(i, j);
-    d = judge_down_up(i, j);
-    if (a == 1 || b == 1 || c == 1 || d == 1) {
+char checkEndGame(char current_player, int x, int y) {
+    char ret = judge(x, y);
+    printf("Last Move: %c%d, ret: %d\n", y + 'A', SIZE - x, ret);
+    // Black made a forbidden move
+    if (current_player == 2 && (ret == 2 || checkForbiddenMoves(x, y))) {
         displayBoard();
-        if (current_player == 1)
+        printf("Black made an forbidden move!\n");
+        printf("White win!\n");
+        return 2;
+    }
+    if (ret) {
+        displayBoard();
+        if (current_player == 1) {
             printf("White win!\n");
-        else if (current_player == 2)
+        } else if (current_player == 2) {
             printf("Black win!\n");
+        }
         return 1;
     }
     return 0;
 }
-char judge_line(int i, int j) {
-    int count = 1;
-    int k = j;
-    while (k >= 0) {
-        if (aRecordBoard[i][--k] == aRecordBoard[i][j])
-            count++;
-        else
-            break;
+
+char judge(int i, int j) {
+    for (int n = 0, count = 0; n < 4; ++n, count = 0) {
+        int currentX = i, currentY = j;
+
+        for (; validPos(currentX, currentY) &&
+               aRecordBoard[currentX][currentY] == aRecordBoard[i][j];
+             move(n, &currentX, &currentY), count++) {
+        }
+
+        currentX = i;
+        currentY = j;
+        move(n + 4, &currentX, &currentY);  // ooposite direction
+
+        for (; validPos(currentX, currentY) &&
+               aRecordBoard[currentX][currentY] == aRecordBoard[i][j];
+             move(n + 4, &currentX, &currentY),  // ooposite direction
+             count++) {
+        }
+
+        if (count > 5) {
+            return 2;  // forbidden move: overline
+        }
+        if (count == 5) {
+            return 1;  // victory
+        }
     }
-    k = j;
-    while (j < SIZE) {
-        if (aRecordBoard[i][++k] == aRecordBoard[i][j])
-            count++;
-        else
-            break;
-    }
-    if (count >= 5)
-        return 1;
-    else
-        return 0;
-}
-char judge_row(int i, int j) {
-    int count = 1;
-    int k = i;
-    while (k >= 0) {
-        if (aRecordBoard[--k][j] == aRecordBoard[i][j])
-            count++;
-        else
-            break;
-    }
-    k = i;
-    while (i < SIZE) {
-        if (aRecordBoard[++k][j] == aRecordBoard[i][j])
-            count++;
-        else
-            break;
-    }
-    if (count >= 5)
-        return 1;
-    else
-        return 0;
-}
-char judge_down_up(int i, int j) {
-    int count = 1;
-    int k = i, l = j;
-    while (k >= 0 && l < SIZE) {
-        if (aRecordBoard[--k][++l] == aRecordBoard[i][j])
-            count++;
-        else
-            break;
-    }
-    k = i, l = j;
-    while (k < SIZE && l >= 0) {
-        if (aRecordBoard[++k][--l] == aRecordBoard[i][j])
-            count++;
-        else
-            break;
-    }
-    if (count >= 5)
-        return 1;
-    else
-        return 0;
-}
-char judge_up_down(int i, int j) {
-    int count = 1;
-    int k = i, l = j;
-    while (k < SIZE && l < SIZE) {
-        if (aRecordBoard[++k][++l] == aRecordBoard[i][j])
-            count++;
-        else
-            break;
-    }
-    k = i, l = j;
-    while (k >= 0 && l >= 0) {
-        if (aRecordBoard[--k][--l] == aRecordBoard[i][j])
-            count++;
-        else
-            break;
-    }
-    if (count >= 5)
-        return 1;
-    else
-        return 0;
+    return 0;
 }
 
-void Move(int n, int* i, int* j) {
+void move(int n, int* i, int* j) {
     switch (n) {
-        case 0:
+        case 0:  // down
             *j = *j + 1;
-            break;  // 	5	6	7
-        case 1:
+            break;
+        case 1:  // right-down
             *i = *i + 1, *j = *j + 1;
-            break;  //	4	*	0
-        case 2:
+            break;
+        case 2:  // right
             *i = *i + 1;
-            break;  //	3	2	1
-        case 3:
+            break;
+        case 3:  // right-up
             *i = *i + 1;
             *j = *j - 1;
             break;
-        case 4:
+        case 4:  // up
             *j = *j - 1;
             break;
-        case 5:
+        case 5:  // left-up
             *i = *i - 1;
             *j = *j - 1;
             break;
-        case 6:
+        case 6:  // left
             *i = *i - 1;
             break;
-        case 7:
+        case 7:  // left-down
             *i = *i - 1;
             *j = *j + 1;
             break;
     }
 }
+
+char checkForbiddenMoves(int x, int y) {
+    // Forbidden rules does not apply to White (1).
+    if (aRecordBoard[x][y] == 1) {
+        return 0;
+    }
+    if (checkDoubleThree(x, y) || checkDoubleFour(x, y) ||
+        checkOverline(x, y)) {
+        return 1;
+    }
+    return 0;
+}
+
+// TODO:
+char checkDoubleThree(int x, int y) { return 0; }
+
+// TODO:
+char checkDoubleFour(int x, int y) { return 0; }
+
+// covered when checking victory, with ret == 2
+char checkOverline(int x, int y) { return 0; }
