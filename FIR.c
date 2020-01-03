@@ -30,7 +30,8 @@ char play2CurrentPic[] = "△";
 
 //此数组用于记录棋盘格局
 int aRecordBoard[SIZE][SIZE];
-int current_row, current_col;
+int current_row = -1;
+int current_col = -1;
 
 // used for fgets & sscanf for input
 char buff[MAXLINE];
@@ -318,6 +319,10 @@ void displayBoard(void) {
     }
     //第三步：输出最下面的一行字母A B ....
     printf("  A B C D E F G H I J K L M N O\n");
+    if (current_col != -1 && current_row != -1) {
+        // do not print before first move
+        printf("Last Move: %c%d\n", current_col + 'A', SIZE - current_row);
+    }
 }
 
 char judge(int i, int j, char current_player) {
