@@ -11,6 +11,10 @@
 // indicate an empty space on the board; 255 is never used as a player marker
 #define EMPTY 0
 
+// function pointer for strategies
+// char player, inputX[], inputY[]
+typedef void (*strategy)(char, int[], int[]);
+
 //棋盘使用的是GBK编码，每一个中文字符占用2个字节。
 
 //棋盘基本模板
@@ -37,10 +41,9 @@ int current_col = -1;
 char buff[MAXLINE];
 
 void PvP();
-void strategy_1(char current_player);
-void XingXingMove(char current_player);
-void strategy_2(char current_player);
-void ShaZiMove(int inputX[3], int inputY[3], char current_player);
+void PvE(strategy func);
+void XingXingMove(char current_player, int[], int[]);
+void ShaZiMove(char current_player, int inputX[], int inputY[]);
 
 int inputGetInt();
 char validateMove(int x, int y);
@@ -58,46 +61,53 @@ char judge_down_up(int i, int j);
 void Move(int n, int* x, int* y);
 
 int main(int argc, char* argv[]) {
-    int Mode;
-    char current_player;
     printf("Welcome to FiveInRow, written by Tang Yufei\n");
     printf(
         "Choose Play Mode:\n"
         "  1 for PvP (player vs player),\n"
         "  2 for PvE (player vs computer)\n");
     printf("Key in q to quit anytime you want\n");
-    Mode = inputGetInt();
-    if (Mode == 1) {
-        PvP();
-    } else if (Mode == 2) {
-        int n;
-        if (argc != 2 || (n = atoi(argv[1])) <= 0) {
-            printf("Usage: ./FiveInRow n \n");
-            printf("1 for XingXing, 2 for ShaZi, 3 for high\n");
-            return 1;  // error code: 1
-        }
-        n = atoi(argv[1]);
-        if (n == 1) {
-            printf("ren_computer with strategy: 1\n");
-            strategy_1(current_player);
-        } else if (n == 2) {
-            printf("ren_computer with strategy: 2\n");
-            strategy_2(current_player);
-        } else if (n == 3) {
-            printf("ren_computer with strategy: 3\n");
-        } else if (n >= 4) {
-            printf("n is too large, it should be no more than 3\n");
-        }
-        return 0;
-    } else if (Mode != 1 && Mode != 2) {
-        printf("Mode choose,only 1 or 2\n");
+
+    initRecordBoard();
+    switch (inputGetInt()) {
+        case 1:
+            PvP();
+            break;
+        case 2:
+            if (argc != 2) {
+                printf("Usage: ./FiveInRow n \n");
+                printf("1 for XingXing, 2 for ShaZi, 3 for High\n");
+                return 1;  // error code: 1
+            }
+
+            int strategy_selection = atoi(argv[1]);
+            strategy func = NULL;
+            switch (strategy_selection) {
+                case 1:
+                    printf("PvE with strategy: 1 XingXing\n");
+                    func = XingXingMove;
+                    break;
+                case 2:
+                    printf("PvE with strategy: 2 ShaZi\n");
+                    func = ShaZiMove;
+                    break;
+                case 3:
+                    printf("PvE with strategy: 3 High\n");
+                    break;
+                default:
+                    printf("n is invalid, it should be 1, 2, or 3\n");
+                    return 1;
+            }
+            PvE(func);
+            break;
+        default:
+            printf("Mode choose,only 1 or 2\n");
+            return 1;
     }
     return 0;
 }
 
 void PvP() {
-    initRecordBoard();
-
     for (int current_player = 2;
          !input(current_player) &&
          !judge(current_row, current_col, current_player);
@@ -105,66 +115,43 @@ void PvP() {
     }
 }
 
-    initRecordBoard();
-    current_player = 2;
-    isquit = input(current_player);
-    if (isquit == 1) return;
-    is_win = judge(current_row, current_col, current_player);
-    while (!is_win) {
-        current_player = (current_player) % 2 + 1;
-        isquit = input(current_player);
-        if (isquit == 1) return;
-        is_win = judge(current_row, current_col, current_player);
-    }
-    return;
-}
-
-void strategy_1(char current_player) {
-    int isquit = 0;
-    int is_win = 0;
-    int Choice;
-
-    initRecordBoard();
+void PvE(strategy func) {
+    int choice = 0;
+    int current_player = 0;
+    int x[3] = {0};
+    int y[3] = {0};
 
     printf("Choice:1 for white and 2 for black.\n");
-    // scanf("%d", &Choice);
-    Choice = inputGetInt();
-    current_player = Choice;
+    choice = inputGetInt();
+    if (choice != 1 && choice != 2) {
+        printf("Wrong input. Quit.\n");
+        return;
+    }
 
-    if (Choice == 2) {
-        current_player = 1;
-        while (!is_win) {
-            current_player = (current_player) % 2 + 1;
-            isquit = input(current_player);
-            if (isquit == 1) return;
-            is_win = judge(current_row, current_col, current_player);
-            if (is_win == 0) {
-                current_player = (current_player) % 2 + 1;
-                XingXingMove(current_player);
-                is_win = judge(current_row, current_col, current_player);
-            } else {
-                break;
+    if (choice == 1) {
+        current_player = 2;
+        x[1] = x[2] = 8;
+        y[1] = y[2] = 8;
+        aRecordBoard[x[current_player]][y[current_player]] = current_player;
+    }
+
+    for (current_player = 2;
+         !judge(current_row, current_col, current_player ^ 3);
+         current_player ^= 3) {
+        if (current_player == choice) {
+            if (input(current_player)) {  // quit when ret != 0
+                return;
             }
+        } else {
+            func(current_player, x, y);
         }
+        x[current_player] = current_row;
+        y[current_player] = current_col;
     }
-    if (Choice == 1) {
-        while (!is_win) {
-            current_player = (current_player) % 2 + 1;
-            XingXingMove(current_player);
-            is_win = judge(current_row, current_col, current_player);
-            if (is_win == 0) {
-                current_player = (current_player) % 2 + 1;
-                isquit = input(current_player);
-                if (isquit == 1) return;
-                is_win = judge(current_row, current_col, current_player);
-            } else
-                break;
-        }
-    }
-    return;
 }
 
-void XingXingMove(char current_player) {
+// ignore last 2 arguments
+void XingXingMove(char current_player, int _[], int __[]) {
     do {
         current_row = rand() % SIZE;
         current_col = rand() % SIZE;
@@ -172,40 +159,7 @@ void XingXingMove(char current_player) {
     aRecordBoard[current_row][current_col] = current_player;
 }
 
-void strategy_2(char current_player) {
-    int isquit = 0;
-    int is_win = 0;
-    int Choice;
-    int x[3], y[3];
-
-    initRecordBoard();
-
-    printf("Choice:1 for white and 2 for black.\n");
-    Choice = inputGetInt();
-
-    if (Choice == 1) {
-        current_player = 2;
-        x[1] = x[2] = 8;
-        y[1] = y[2] = 8;
-        aRecordBoard[x[current_player]][y[current_player]] = current_player;
-    }
-    current_player = Choice;
-
-    while (!is_win) {
-        if (current_player == Choice) {
-            isquit = input(current_player);
-            if (isquit) return;
-        } else {
-            ShaZiMove(x, y, current_player);
-        }
-        x[current_player] = current_row;
-        y[current_player] = current_col;
-        is_win = judge(current_row, current_col, current_player);
-        current_player = (current_player) % 2 + 1;
-    }
-}
-
-void ShaZiMove(int inputX[3], int inputY[3], char current_player) {
+void ShaZiMove(char current_player, int inputX[], int inputY[]) {
     int x[3], y[3];
 
     // start with 2: black
@@ -226,7 +180,7 @@ void ShaZiMove(int inputX[3], int inputY[3], char current_player) {
             return;
         }
     }
-    XingXingMove(current_player);
+    XingXingMove(current_player, inputX, inputY);
 }
 
 int inputGetInt() {
