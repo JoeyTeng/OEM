@@ -13,7 +13,7 @@
 
 // function pointer for strategies
 // char player, inputX[], inputY[]
-typedef void (*strategy)(char, int[], int[]);
+typedef void (*strategy)(char);
 
 //棋盘使用的是GBK编码，每一个中文字符占用2个字节。
 
@@ -36,15 +36,18 @@ char play2CurrentPic[] = "△";
 int aRecordBoard[SIZE][SIZE];
 int current_row = -1;
 int current_col = -1;
+int turns = 0;
+// [0(x, row)/1(y, col)][white(1)/black(2)][turns]
+int history[2][3][SIZE * SIZE] = {0};
 
 // used for fgets & sscanf for input
 char buff[MAXLINE];
 
 void PvP();
 void PvE(strategy func);
-void XingXingMove(char current_player, int[], int[]);
-void ShaZiMove(char current_player, int inputX[], int inputY[]);
-void defence(char current_player);
+void XingXingMove(char current_player);
+void ShaZiMove(char current_player);
+void highLevel(char current_player);
 
 int inputGetInt();
 char validPos(int x, int y);
@@ -55,7 +58,7 @@ void recordtoDisplayArray(void);
 void displayBoard(void);
 
 char checkEndGame(char current_player, int x, int y);
-char judge(int i, int j);
+char checkVictory(int i, int j);
 
 void move(int n, int* x, int* y);
 
@@ -97,6 +100,7 @@ int main(int argc, char* argv[]) {
                     break;
                 case 3:
                     printf("PvE with strategy: 3 High\n");
+                    func = highLevel;
                     break;
                 default:
                     printf("n is invalid, it should be 1, 2, or 3\n");
@@ -122,8 +126,6 @@ void PvP() {
 void PvE(strategy func) {
     int choice = 0;
     int current_player = 0;
-    int x[(SIZE * SIZE) + 2] = {0, -1};  // x[0] is the number of turns elapsed
-    int y[(SIZE * SIZE) + 2] = {0, -1};  // save the history of previous moves
 
     printf("Choice:1 for white and 2 for black.\n");
     choice = inputGetInt();
@@ -132,30 +134,33 @@ void PvE(strategy func) {
         return;
     }
 
-    x[0] = 1;  // x[0] is the number of turns elapsed
-    int turns = x[0];
     if (choice == 1) {
         current_player = 2;
-        x[turns] = 8;
-        y[turns] = 8;
-        aRecordBoard[x[turns]][y[turns]] = current_player;
+        int x = 8;
+        int y = 8;
+        history[0][current_player][turns] = x;
+        history[1][current_player][turns] = y;
+        aRecordBoard[x][y] = current_player;
     }
 
     for (current_player = 2;
          !checkEndGame(current_player ^ 3, current_row, current_col);
          current_player ^= 3) {
         if (current_player == choice) {
+            turns++;
             if (input(current_player)) {  // quit when ret != 0
                 return;
             }
         } else {
-            func(current_player, x, y);
+            func(current_player);
         }
+        history[0][current_player][turns] = current_row;
+        history[1][current_player][turns] = current_col;
     }
 }
 
 // ignore last 2 arguments
-void XingXingMove(char current_player, int _[], int __[]) {
+void XingXingMove(char current_player) {
     do {
         current_row = rand() % SIZE;
         current_col = rand() % SIZE;
@@ -163,32 +168,32 @@ void XingXingMove(char current_player, int _[], int __[]) {
     aRecordBoard[current_row][current_col] = current_player;
 }
 
-void ShaZiMove(char current_player, int inputX[], int inputY[]) {
-    // player take black, in the first turn:
-    if (inputX[1] == -1 && inputY[1] == -1) {
-        inputX[1] = current_row;
-        inputY[1] = current_col;
+void ShaZiMove(char current_player) {
+    // player take black, in the first turn, copy the move history from black
+    if (current_player == 1 && turns == 1) {
+        history[0][1][turns] = history[0][2][turns];
+        history[1][1][turns] = history[1][2][turns];
     }
     // start with last move
-    for (int turns = inputX[0]; turns > 0; --turns) {
+    for (int t = turns - 1; t >= 0; --t) {
         int n = 0;
-        int x = inputX[turns];
-        int y = inputY[turns];
+        int x = history[0][current_player][t];
+        int y = history[1][current_player][t];
         do {
-            x = inputX[turns];
-            y = inputY[turns];
+            x = history[0][current_player][t];
+            y = history[1][current_player][t];
             move(n, &x, &y);
             n = n + 1;
         } while (n < 8 && !validMove(x, y));
         if (aRecordBoard[x][y] == EMPTY) {
             aRecordBoard[x][y] = current_player;
-            turns = inputX[0] = inputX[0] + 1;
-            inputX[turns] = current_row = x;
-            inputY[turns] = current_col = y;
+            history[0][current_player][turns] = current_row = x;
+            history[1][current_player][turns] = current_col = y;
             return;
         }
     }
-    XingXingMove(current_player, inputX, inputY);
+    XingXingMove(current_player);
+}
 }
 
 int inputGetInt() {
@@ -288,7 +293,7 @@ void displayBoard(void) {
 }
 
 char checkEndGame(char current_player, int x, int y) {
-    char ret = judge(x, y);
+    char ret = checkVictory(x, y);
     // Black made a forbidden move
     if (current_player == 2 && (ret == 2 || checkForbiddenMoves(x, y))) {
         displayBoard();
@@ -308,7 +313,7 @@ char checkEndGame(char current_player, int x, int y) {
     return 0;
 }
 
-char judge(int i, int j) {
+char checkVictory(int i, int j) {
     for (int n = 0, count = 0; n < 4; ++n, count = 0) {
         int currentX = i, currentY = j;
 
