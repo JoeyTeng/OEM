@@ -10,6 +10,7 @@
 #define MAXLINE 1000
 // indicate an empty space on the board; 255 is never used as a player marker
 #define EMPTY 0
+#define PREDICT_MOVES 3
 
 // function pointer for strategies
 // char player, inputX[], inputY[]
@@ -47,12 +48,18 @@ void PvP();
 void PvE(strategy func);
 void XingXingMove(char current_player);
 void ShaZiMove(char current_player);
+int calcPredictedScore(int scoreMap[PREDICT_MOVES][SIZE][SIZE], int step, int x,
+                       int y);
 void highLevel(char current_player);
+void defence();
+void attack();
+int score(char current_player, int x, int y);
 
 int inputGetInt();
 char validPos(int x, int y);
 char validMove(int x, int y);
 int input(char current_player);
+
 void initRecordBoard(void);
 void recordtoDisplayArray(void);
 void displayBoard(void);
@@ -61,6 +68,11 @@ char checkEndGame(char current_player, int x, int y);
 char checkVictory(int i, int j);
 
 void move(int n, int* x, int* y);
+
+char checkUnbrokenTwo(int x, int y);
+char checkUnbrokenThree(int x, int y);
+char checkUnbrokenFour(int x, int y);
+char checkBrokenFour(int x, int y);
 
 char checkForbiddenMoves(int x, int y);
 char checkDoubleThree(int x, int y);
@@ -171,8 +183,10 @@ void XingXingMove(char current_player) {
 void ShaZiMove(char current_player) {
     // player take black, in the first turn, copy the move history from black
     if (current_player == 1 && turns == 1) {
-        history[0][1][turns] = history[0][2][turns];
-        history[1][1][turns] = history[1][2][turns];
+        history[0][current_player][turns - 1] =
+            history[0][current_player ^ 3][turns];
+        history[1][current_player][turns - 1] =
+            history[1][current_player ^ 3][turns];
     }
     // start with last move
     for (int t = turns - 1; t >= 0; --t) {
@@ -187,13 +201,173 @@ void ShaZiMove(char current_player) {
         } while (n < 8 && !validMove(x, y));
         if (aRecordBoard[x][y] == EMPTY) {
             aRecordBoard[x][y] = current_player;
-            history[0][current_player][turns] = current_row = x;
-            history[1][current_player][turns] = current_col = y;
             return;
         }
     }
+    printf("MAKE A XINGXING MOVE\n");
     XingXingMove(current_player);
 }
+
+int calcPredictedScore(int scoreMap[PREDICT_MOVES][SIZE][SIZE], int step, int x,
+                       int y) {
+    // TODO: may adjust formula here.
+    switch (step) {
+        case 0:
+        // fall through
+        case 1:
+            return scoreMap[step][x][y];
+        case 2:
+        // fall through
+        case 3:
+            return 0.6 * scoreMap[step - 1][x][y] + 0.5 * scoreMap[step][x][y];
+        default:
+            return scoreMap[step][x][y];
+    }
+}
+
+void highLevel(char current_player) {
+    if (PREDICT_MOVES <= 0) {
+        goto FALLBACK;
+    }
+    int scoreMap[PREDICT_MOVES][SIZE][SIZE] = {0};
+    int attemptX[PREDICT_MOVES] = {0};
+    int attemptY[PREDICT_MOVES] = {0};
+
+    int step = 0;
+    for (int highestScore = -1, highestAttackScore = -1; step < PREDICT_MOVES;
+         ++step, highestScore = -1, highestAttackScore = -1) {
+        // place previous predicted moves (DFS)
+        for (int i = 0; i < step; i += 2) {
+            if (aRecordBoard[attemptX[i]][attemptY[i]] != EMPTY) {
+                printf("WARINING: Unexpected behaviour, make random move.\n");
+                goto FALLBACK;
+            }
+            aRecordBoard[attemptX[i]][attemptY[i]] = current_player;
+        }
+        for (int i = 1; i < step; i += 2) {
+            if (aRecordBoard[attemptX[i]][attemptY[i]] != EMPTY) {
+                printf("WARINING: Unexpected behaviour, make random move.\n");
+                goto FALLBACK;
+            }
+            aRecordBoard[attemptX[i]][attemptY[i]] = current_player ^ 3;
+        }
+
+        for (int x = 0; x < SIZE; ++x) {
+            for (int y = 0; y < SIZE; ++y) {
+                // only calculate score for empty cells
+                if (aRecordBoard[x][y] != EMPTY) {
+                    continue;
+                }
+
+                int computerScore = score(current_player, x, y);
+                int playerScore = score(current_player ^ 3, x, y);
+                int attackerScore = (step & 1) ? playerScore : computerScore;
+                if (computerScore == -1) {
+                    // a forbidden move
+                    scoreMap[step][x][y] = -1;
+                } else {
+                    // take our best move, or prevent opponent to do so.
+                    // TODO: Improve on this formula.
+                    scoreMap[step][x][y] = computerScore + playerScore;
+                }
+
+                // stop search if a stone in this position can form a
+                // unbroken three or more emergent condition IN THE *NEXT* MOVE
+                if (step == 0 && scoreMap[step][x][y] >= 400000) {
+                    current_row = x;
+                    current_col = y;
+                    return;
+                }
+
+                int predictedScore = calcPredictedScore(scoreMap, step, x, y);
+                // for second condition: always prefer attack (place at a
+                // position more favourable to us, rather than hinder opponent)
+                if (predictedScore > highestScore ||
+                    (predictedScore == highestScore &&
+                     attackerScore > highestAttackScore)) {
+                    highestScore = predictedScore;
+                    highestAttackScore = attackerScore;
+                    attemptX[step] = x;
+                    attemptY[step] = y;
+                }
+            }
+        }
+        // restore board
+        for (int i = 0; i < step; ++i) {
+            aRecordBoard[attemptX[i]][attemptY[i]] = EMPTY;
+        }
+    }
+    return;
+FALLBACK:
+    XingXingMove(current_player);
+    return;
+}
+int score(char current_player, int x, int y) {
+    int dscore = 0;
+    aRecordBoard[x][y] = current_player;
+    if (current_player == 1 && checkVictory(x, y)) {
+        if (checkOverline(x, y) /*check player!*/) {
+            dscore = -1;
+            aRecordBoard[x][y] = 0;
+            return dscore;
+        } else {
+            dscore = 5000000;  //黑棋赢，且无禁手
+            aRecordBoard[x][y] = 0;
+            return dscore;
+        }
+    } else if (current_player == 2 && checkVictory(x, y)) {
+        dscore = 5000000;  //白棋赢；
+        aRecordBoard[x][y] = 0;
+        return dscore;
+    }
+    if (current_player == 2 && checkDoubleFour(x, y) /*check player!*/) {
+        dscore = 4000000;  //白棋出现“双活四”
+        aRecordBoard[x][y] = 0;
+        return dscore;
+    } else if (current_player == 1 &&
+               (checkDoubleFour(x, y) /*check player!*/ ||
+                checkOverline(x, y))) {
+        dscore = -1;  //黑棋出现双活四禁手；
+        aRecordBoard[x][y] = 0;
+        return dscore;
+    }
+    if (current_player == 1 &&
+        ((checkUnbrokenFour(x, y) == 1 || checkBrokenFour(x, y) == 1) &&
+         checkUnbrokenThree(x, y) == 1)) {
+        dscore += 600000;  //出现三、四的情况；
+    } else if (current_player == 2 &&
+               ((checkUnbrokenFour(x, y) == 1 || checkBrokenFour(x, y) == 1) &&
+                checkUnbrokenThree(x, y) >= 1)) {
+        dscore += 600000;
+    }
+    if (checkUnbrokenFour(x, y) == 1) {
+        dscore += 800000;  //出现活四；
+        aRecordBoard[x][y] = 0;
+        return dscore;
+    }
+    if (checkBrokenFour(x, y) == 1) {
+        dscore += 35000;  //出现冲四；
+    }
+    if (current_player == 2 && checkDoubleThree(x, y) /*check player!*/) {
+        dscore += 400000;  //白棋出现“双活三”
+        aRecordBoard[x][y] = 0;
+        return dscore;
+    } else if (current_player == 1 &&
+               checkDoubleThree(x, y) /*check player!*/) {
+        dscore = -1;  //黑棋出现双活三禁手；
+        aRecordBoard[x][y] = 0;
+        return dscore;
+    }
+    if (checkUnbrokenThree(x, y) == 1) {
+        dscore += 60000;  //出现活三；
+        aRecordBoard[x][y] = 0;
+        return dscore;
+    }
+    if (checkUnbrokenTwo(x, y) == 1) {
+        dscore += 20000;  //出现活二；
+    }
+    aRecordBoard[x][y] = 0;
+    return dscore;
 }
 
 int inputGetInt() {
@@ -373,6 +547,11 @@ void move(int n, int* i, int* j) {
             break;
     }
 }
+
+char checkUnbrokenTwo(int x, int y) {}
+char checkUnbrokenThree(int x, int y) {}
+char checkUnbrokenFour(int x, int y) {}
+char checkBrokenFour(int x, int y) {}
 
 char checkForbiddenMoves(int x, int y) {
     // Forbidden rules does not apply to White (1).
