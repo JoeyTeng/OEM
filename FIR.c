@@ -156,7 +156,7 @@ void PvE(strategy func) {
         aRecordBoard[x][y] = current_player;
     }
 
-    for (current_player = 2;
+    for (current_player = choice;
          !checkEndGame(current_player ^ 3, current_row, current_col);
          current_player ^= 3) {
         if (current_player == choice) {
@@ -455,7 +455,8 @@ void displayBoard(void) {
     recordtoDisplayArray();
 
     //第一步：清屏
-    system("clear");
+    // TODO: DEBUG:
+    // system("clear");
     //第二步：将aDisplayBoardArray输出到屏幕上
     for (int i = 0; i < SIZE; i++) {
         printf("%2d", SIZE - i);
