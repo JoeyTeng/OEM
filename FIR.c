@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
             PvE(func);
             break;
         default:
-            printf("Mode choose,only 1 or 2\n");
+            printf("Mode choose, only 1 or 2\n");
             return 1;
     }
     return 0;
