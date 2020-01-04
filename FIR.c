@@ -65,10 +65,11 @@ void recordtoDisplayArray(void);
 void displayBoard(void);
 
 char checkEndGame(char current_player, int x, int y);
-char checkVictory(int i, int j);
+char checkVictory(int x, int y);
 
 void move(int n, int* x, int* y);
 
+int checkConsectary(int _x, int _y, int _count);
 char checkUnbrokenTwo(int x, int y);
 char checkUnbrokenThree(int x, int y);
 char checkUnbrokenFour(int x, int y);
@@ -489,31 +490,13 @@ char checkEndGame(char current_player, int x, int y) {
     return 0;
 }
 
-char checkVictory(int i, int j) {
-    for (int n = 0, count = 0; n < 4; ++n, count = 0) {
-        int currentX = i, currentY = j;
-
-        for (; validPos(currentX, currentY) &&
-               aRecordBoard[currentX][currentY] == aRecordBoard[i][j];
-             move(n, &currentX, &currentY), count++) {
-        }
-
-        currentX = i;
-        currentY = j;
-        move(n + 4, &currentX, &currentY);  // ooposite direction
-
-        for (; validPos(currentX, currentY) &&
-               aRecordBoard[currentX][currentY] == aRecordBoard[i][j];
-             move(n + 4, &currentX, &currentY),  // ooposite direction
-             count++) {
-        }
-
-        if (count > 5) {
-            return 2;  // forbidden move: overline
-        }
-        if (count == 5) {
-            return 1;  // victory
-        }
+char checkVictory(int x, int y) {
+    int ret = checkConsectary(x, y, 5);
+    if (ret & 2) {
+        return 2;  // forbidden move: overline
+    }
+    if (ret & 1) {
+        return 1;  // victory
     }
     return 0;
 }
@@ -550,10 +533,111 @@ void move(int n, int* i, int* j) {
     }
 }
 
-char checkUnbrokenTwo(int x, int y) {}
-char checkUnbrokenThree(int x, int y) {}
-char checkUnbrokenFour(int x, int y) {}
-char checkBrokenFour(int x, int y) {}
+// report unbroken 4 > broken 4 > unbroken 3 > unbroken 2
+// 0: not long enough; &1 == 1: just enough length; &2 == 1: overlong
+// &4 == 1: broken; &8 == 1: dead;
+// (ret >> 4) & 7: the frequency of unbroken _count appears
+// ret >> 8: the frequency of broken _count appears
+int checkConsectary(int _x, int _y, int _count) {
+    int player = aRecordBoard[_x][_y];
+    int maxCount = 0;
+    int brokenFrequency = 0;
+    int unbrokenFrequency = 0;
+    int ret = 0;
+    int condition = 2;  // 2 for unbroken, 1 for broken, 0 for dead
+
+    if (player == EMPTY) {
+        return 0;
+    }
+    for (int n = 0; n < 4; ++n) {
+        int count = 0;
+        int alive = 2;  // by default, it can grow in both directions
+        int x = _x;
+        int y = _y;
+
+        for (; validPos(x, y) && aRecordBoard[x][y] == player;
+             move(n, &x, &y), count++) {
+        }
+        if (!validPos(x, y) || aRecordBoard[x][y] != EMPTY) {
+            alive--;
+        }
+
+        x = _x;
+        y = _y;
+        move(n + 4, &x, &y);  // opposite direction
+
+        for (; validPos(x, y) && aRecordBoard[x][y] == player;
+             move(n + 4, &x, &y),  // opposite direction
+             count++) {
+        }
+        if (!validPos(x, y) || aRecordBoard[x][y] != EMPTY) {
+            alive--;
+        }
+        // update variables for ret
+        if (count > maxCount) {
+            // only report death >= 5
+            if (alive == 0 && count < 5) {
+                continue;
+            }
+            // if broken, only report broken 4
+            if (alive == 1 && count < 4) {
+                continue;
+            }
+            // fallthrough
+            maxCount = count;
+            condition = alive;
+        }
+        if (count == _count && alive == 2) {
+            unbrokenFrequency++;
+        }
+        if (count == _count && alive == 1) {
+            brokenFrequency++;
+        }
+    }
+
+    if (maxCount < _count) {
+        return 0;
+    }
+    if (maxCount == _count) {
+        ret = 1;
+    }
+    if (maxCount > _count) {
+        ret = 2;
+    }
+    switch (condition) {
+        case 0:
+            // dead, 8 is (1 << 3)
+            ret |= 8;
+            break;
+        case 1:
+            // broken, 4 is (1 << 2)
+            ret |= 4;
+            break;
+        default:
+            // alive
+            break;
+    }
+    ret |= (unbrokenFrequency << 4);
+    ret |= (brokenFrequency << 8);
+
+    return ret;
+}
+char checkUnbrokenTwo(int x, int y) {
+    int ret = checkConsectary(x, y, 2);
+    return (ret & 1 && !ret & 4);
+}
+char checkUnbrokenThree(int x, int y) {
+    int ret = checkConsectary(x, y, 3);
+    return (ret & 1 && !ret & 4);
+}
+char checkUnbrokenFour(int x, int y) {
+    int ret = checkConsectary(x, y, 4);
+    return (ret & 1 && !ret & 4);
+}
+char checkBrokenFour(int x, int y) {
+    int ret = checkConsectary(x, y, 4);
+    return (ret & 1 && ret & 4);
+}
 
 char checkForbiddenMoves(int x, int y) {
     // Forbidden rules does not apply to White (1).
@@ -566,12 +650,17 @@ char checkForbiddenMoves(int x, int y) {
     }
     return 0;
 }
-
-// TODO:
-char checkDoubleThree(int x, int y) { return 0; }
-
-// TODO:
-char checkDoubleFour(int x, int y) { return 0; }
+char checkDoubleThree(int x, int y) {
+    int ret = checkConsectary(x, y, 3);
+    return (((ret >> 4) & 7) > 1);  // 7 is 111, bit mask
+}
+char checkDoubleFour(int x, int y) {
+    int ret = checkConsectary(x, y, 4);
+    return (((ret >> 4) & 7) || ((ret >> 8) > 1));  // 7 is 111, bit mask
+}
 
 // covered when checking victory, with ret == 2
-char checkOverline(int x, int y) { return 0; }
+char checkOverline(int x, int y) {
+    int ret = checkConsectary(x, y, 5);
+    return ret & 2;
+}
