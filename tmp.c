@@ -1,4 +1,4 @@
-void defence(void)  //电脑执白棋，为保守方；
+void attack(void)  //电脑执黑棋，为进攻方；
 {
     int i, j, m, n, temp1 = 0, temp2 = 0, reset = 0;
     int c1[SIZE + 1][SIZE + 1], c2 = 0, e1[SIZE + 1][SIZE + 1], e2 = 0,
@@ -25,16 +25,19 @@ void defence(void)  //电脑执白棋，为保守方；
         for (y_c = 1; y_c <= SIZE; y_c++) {
             if (aRecordBoard[x_c][y_c] == 0) {
                 a1[x_c][y_c] =
-                    defence_score(x_c, y_c, 2);  //计算此处落下己方子的得分；
+                    defence_score(x_c, y_c, 1);  //计算此处落下己方子的得分；
                 a2[x_c][y_c] =
-                    attack_score(x_c, y_c, 1);  //计算此处落下对方子的得分；
+                    attack_score(x_c, y_c, 2);  //计算此处落下对方子的得分；
             } else if (aRecordBoard[x_c][y_c] == 1)
                 ;
             else if (aRecordBoard[x_c][y_c] == 2)
                 ;
-            c1[x_c][y_c] = a1[x_c][y_c] + a2[x_c][y_c];
-            if (c1[x_c][y_c] > c2 || (c1[x_c][y_c] == c2 &&
-                                      a1[x_c][y_c] == a2[jizhi_x1][jizhi_y1])) {
+            if (a1[x_c][y_c] != -1) {
+                c1[x_c][y_c] = a1[x_c][y_c] + a2[x_c][y_c];
+            } else if (a1[x_c][y_c] == -1) {
+                c1[x_c][y_c] = 0;
+            }
+            if (c1[x_c][y_c] > c2) {
                 c2 = c1[x_c][y_c];
                 x_current1 = x_c;
                 y_current1 = y_c;
@@ -56,34 +59,26 @@ void defence(void)  //电脑执白棋，为保守方；
     int x_current2 = 0;
     int y_current2 = 0;
     while (temp1 < 1) {  //向后预测对方的落子位置；
-        aRecordBoard[x_current1][y_current1] = 2;
+        aRecordBoard[x_current1][y_current1] = 1;
         x_c = 1;
         y_c = 1;
         for (x_c = 1; x_c <= SIZE; x_c++) {
             for (y_c = 1; y_c <= SIZE; y_c++) {
                 if (aRecordBoard[x_c][y_c] == 0) {
-                    a11[x_c][y_c] = defence_score(x_c, y_c, 1);
-                    a12[x_c][y_c] = attack_score(x_c, y_c, 2);
+                    a11[x_c][y_c] = defence_score(x_c, y_c, 2);
+                    a12[x_c][y_c] = attack_score(x_c, y_c, 1);
                 } else if (aRecordBoard[x_c][y_c] == 1)
                     ;
                 else if (aRecordBoard[x_c][y_c] == 2)
                     ;
-                if (a11[x_c][y_c] != -1) {
-                    d1[x_c][y_c] = a11[x_c][y_c] + a12[x_c][y_c];
-                } else if (a11[x_c][y_c] == -1) {
-                    d1[x_c][y_c] = 0;
-                }
-                if (d1[x_c][y_c] > d2 ||
-                    (d1[x_c][y_c] == d2 &&
-                     a11[x_c][y_c] ==
-                         a12[jizhi_x2]
-                            [jizhi_y2])) {  //如果两处评分相等，但是攻击的分数大于防守的分数就立刻就选择进攻位下子
+                d1[x_c][y_c] = a11[x_c][y_c] + a12[x_c][y_c];
+                if (d1[x_c][y_c] > d2) {
                     d2 = d1[x_c][y_c];
                     x_current2 = x_c;
                     y_current2 = y_c;
                     jizhi_x2 = x_c;
                     jizhi_y2 = y_c;
-                    printf("d2=%d d1[%d][%d]=%d ", d2, x_c, y_c, d1[x_c][y_c]);
+                    printf("d[%d][%d]=%d d2=%d ", x_c, y_c, d1[x_c][y_c], d2);
                 }
             }
         }
@@ -93,7 +88,7 @@ void defence(void)  //电脑执白棋，为保守方；
     int x_current3 = 0;
     int y_current3 = 0;
     while (temp2 < 1) {  //预测完以后，在落己方子，e2记录整体总评分；
-        aRecordBoard[x_current2][y_current2] = 1;
+        aRecordBoard[x_current2][y_current2] = 2;
         x_c = 1;
         y_c = 1;
         for (x_c = 1; x_c <= SIZE; x_c++) {
@@ -101,13 +96,17 @@ void defence(void)  //电脑执白棋，为保守方；
                 a111 = 0;
                 a112 = 0;
                 if (aRecordBoard[x_c][y_c] == 0) {
-                    a111 = defence_score(x_c, y_c, 2);
-                    a112 = attack_score(x_c, y_c, 1);
+                    a111 = defence_score(x_c, y_c, 1);
+                    a112 = attack_score(x_c, y_c, 2);
                 } else if (aRecordBoard[x_c][y_c] == 1)
                     ;
                 else if (aRecordBoard[x_c][y_c] == 2)
                     ;
-                e1[x_c][y_c] = a111 + a112;
+                if (a111 != -1) {
+                    e1[x_c][y_c] = a111 + a112;
+                } else if (a111 == -1) {
+                    e1[x_c][y_c] = 0;
+                }
                 if ((0.6 * d1[x_c][y_c] + 0.5 * e1[x_c][y_c] + c1[x_c][y_c]) >
                     e2) {
                     e2 = 0.6 * d1[x_c][y_c] + 0.5 * e1[x_c][y_c] + c1[x_c][y_c];
@@ -127,7 +126,8 @@ void defence(void)  //电脑执白棋，为保守方；
         aRecordBoard[x_current2][y_current2] = 0;
     }
 }
-int defence_score(int a, int b, int c)  //己方子的防守得分；
+int attack_score(int a, int b,
+                 int c)  //用对方子的进攻得分，评分方式与defence_score相同；
 {
     int dscore = 0;
     aRecordBoard[a][b] = c;
@@ -137,57 +137,57 @@ int defence_score(int a, int b, int c)  //己方子的防守得分；
             aRecordBoard[a][b] = 0;
             return dscore;
         } else {
-            dscore = 5000000;  //黑棋赢，且无禁手
+            dscore = 5000000;
             aRecordBoard[a][b] = 0;
             return dscore;
         }
     } else if (c == 2 && win(a, b, c)) {
-        dscore = 5000000;  //白棋赢；
+        dscore = 5000000;
         aRecordBoard[a][b] = 0;
         return dscore;
     }
     if (c == 2 && sisijinshou(a, b, c)) {
-        dscore = 4000000;  //白棋出现“双活四”
+        dscore = 4000000;
         aRecordBoard[a][b] = 0;
         return dscore;
     } else if (c == 1 && (sisijinshou(a, b, c) || changlianjinshou(a, b, c))) {
-        dscore = -1;  //黑棋出现双活四禁手；
+        dscore = -1;
         aRecordBoard[a][b] = 0;
         return dscore;
     }
     if (c == 1 &&
         ((checkUnbrokenFour(a, b, c) == 1 || checkBrokenFour(a, b, c) == 1) &&
          checkUnbrokenThree(a, b, c) == 1)) {
-        dscore += 600000;  //出现三、四的情况；
+        dscore += 600000;
     } else if (c == 2 && ((checkUnbrokenFour(a, b, c) == 1 ||
                            checkBrokenFour(a, b, c) == 1) &&
                           checkUnbrokenThree(a, b, c) >= 1)) {
         dscore += 600000;
     }
     if (checkUnbrokenFour(a, b, c) == 1) {
-        dscore += 800000;  //出现活四；
+        dscore += 800000;
         aRecordBoard[a][b] = 0;
         return dscore;
     }
     if (checkBrokenFour(a, b, c) == 1) {
-        dscore += 35000;  //出现冲四；
+        dscore += 35000;
     }
     if (c == 2 && shuanghuosanjinshou(a, b, c)) {
-        dscore += 400000;  //白棋出现“双活三”
+        dscore += 400000;
         aRecordBoard[a][b] = 0;
         return dscore;
     } else if (c == 1 && shuanghuosanjinshou(a, b, c)) {
-        dscore = -1;  //黑棋出现双活三禁手；
+        dscore = -1;
         aRecordBoard[a][b] = 0;
         return dscore;
     }
     if (checkUnbrokenThree(a, b, c) == 1) {
-        dscore += 60000;  //出现活三；
+        dscore += 60000;
         aRecordBoard[a][b] = 0;
         return dscore;
     }
     if (checkUnbrokenTwo(a, b, c) == 1) {
-        dscore += 20000;  //出现活二；
+        dscore += 20000;
     }
     aRecordBoard[a][b] = 0;
     return dscore;
