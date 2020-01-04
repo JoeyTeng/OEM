@@ -455,8 +455,7 @@ void displayBoard(void) {
     recordtoDisplayArray();
 
     //第一步：清屏
-    // TODO: DEBUG:
-    // system("clear");
+    system("clear");
     //第二步：将aDisplayBoardArray输出到屏幕上
     for (int i = 0; i < SIZE; i++) {
         printf("%2d", SIZE - i);
