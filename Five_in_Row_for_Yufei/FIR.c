@@ -439,8 +439,14 @@ void recordtoDisplayArray(void) {
             char* playPic = NULL;
             if (aRecordBoard[i][j] == 1) {
                 playPic = play1Pic;
+                if (i == current_row && j == current_col) {
+                    playPic = play1CurrentPic;
+                }
             } else if (aRecordBoard[i][j] == 2) {
                 playPic = play2Pic;
+                if (i == current_row && j == current_col) {
+                    playPic = play2CurrentPic;
+                }
             } else {
                 continue;
             }
