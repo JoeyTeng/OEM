@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// #define _DEBUG // uncomment this for debugging prints
 #define SIZE 15
 // A safe choice
 #define CHARSIZE 4
@@ -455,7 +456,9 @@ void displayBoard(void) {
     recordtoDisplayArray();
 
     //第一步：清屏
+#ifndef _DEBUG
     system("clear");
+#endif
     //第二步：将aDisplayBoardArray输出到屏幕上
     for (int i = 0; i < SIZE; i++) {
         printf("%2d", SIZE - i);
@@ -474,6 +477,10 @@ char checkEndGame(char current_player, int x, int y) {
     // Black made a forbidden move
     if (current_player == 2 && (ret == 2 || checkForbiddenMoves(x, y))) {
         displayBoard();
+#ifdef _DEBUG
+        printf("33: %d; 44: %d; > 5: %d; ret: %d\n", checkDoubleThree(x, y),
+               checkDoubleFour(x, y), checkOverline(x, y), ret);
+#endif
         printf("Black made an forbidden move!\n");
         printf("White win!\n");
         return 2;
@@ -656,7 +663,7 @@ char checkDoubleThree(int x, int y) {
 }
 char checkDoubleFour(int x, int y) {
     int ret = checkConsectary(x, y, 4);
-    return (((ret >> 4) & 7) || ((ret >> 8) > 1));  // 7 is 111, bit mask
+    return ((((ret >> 4) & 7) + (ret >> 8)) > 1);  // 7 is 111, bit mask
 }
 
 // covered when checking victory, with ret == 2
