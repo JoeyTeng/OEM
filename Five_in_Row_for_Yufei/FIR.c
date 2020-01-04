@@ -47,8 +47,8 @@ char buff[MAXLINE];
 
 void PvP();
 void PvE(strategy func);
-void XingXingMove(char current_player);
-void ShaZiMove(char current_player);
+void GorillaMove(char current_player);
+void IdiotMove(char current_player);
 int calcPredictedScore(int scoreMap[PREDICT_MOVES][SIZE][SIZE], int step, int x,
                        int y);
 void highLevel(char current_player);
@@ -82,7 +82,7 @@ char checkDoubleFour(int x, int y);
 char checkOverline(int x, int y);
 
 int main(int argc, char* argv[]) {
-    printf("Welcome to FiveInRow, written by Tang Yufei\n");
+    printf("Welcome to Five in a Row, written by Tang Yufei\n");
     printf(
         "Choose Play Mode:\n"
         "  1 for PvP (player vs player),\n"
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
         case 2:
             if (argc != 2) {
                 printf("Usage: ./FiveInRow n \n");
-                printf("1 for XingXing, 2 for ShaZi, 3 for High\n");
+                printf("1 for Gorilla, 2 for Idiot, 3 for High\n");
                 return 1;  // error code: 1
             }
 
@@ -105,25 +105,25 @@ int main(int argc, char* argv[]) {
             strategy func = NULL;
             switch (strategy_selection) {
                 case 1:
-                    printf("PvE with strategy: 1 XingXing\n");
-                    func = XingXingMove;
+                    printf("PvE with strategy: 1. Gorilla\n");
+                    func = GorillaMove;
                     break;
                 case 2:
-                    printf("PvE with strategy: 2 ShaZi\n");
-                    func = ShaZiMove;
+                    printf("PvE with strategy: 2. Idiot\n");
+                    func = IdiotMove;
                     break;
                 case 3:
-                    printf("PvE with strategy: 3 High\n");
+                    printf("PvE with strategy: 3. High\n");
                     func = highLevel;
                     break;
                 default:
-                    printf("n is invalid, it should be 1, 2, or 3\n");
+                    printf("Invalid choice n, choose between 1, 2, or 3\n");
                     return 1;
             }
             PvE(func);
             break;
         default:
-            printf("Mode choose, only 1 or 2\n");
+            printf("Invalid mode choice, choose only 1 or 2\n");
             return 1;
     }
     return 0;
@@ -175,14 +175,14 @@ void PvE(strategy func) {
 }
 
 // ignore last 2 arguments
-void XingXingMove(char current_player) {
+void GorillaMove(char current_player) {
     do {
         current_row = rand() % SIZE;
         current_col = rand() % SIZE;
     } while (aRecordBoard[current_row][current_col] != EMPTY);
 }
 
-void ShaZiMove(char current_player) {
+void IdiotMove(char current_player) {
     // player take black, in the first turn, copy the move history from black
     if (current_player == 1 && turns == 1) {
         history[0][current_player][turns - 1] =
@@ -207,8 +207,8 @@ void ShaZiMove(char current_player) {
             return;
         }
     }
-    printf("MAKE A XINGXING MOVE\n");
-    XingXingMove(current_player);
+    printf("MAKE A Gorilla MOVE\n");
+    GorillaMove(current_player);
 }
 
 int calcPredictedScore(int scoreMap[PREDICT_MOVES][SIZE][SIZE], int step, int x,
@@ -304,7 +304,7 @@ void highLevel(char current_player) {
     return;
 FALLBACK:
     printf("WARINING: Fallback, make random move.\n");
-    XingXingMove(current_player);
+    GorillaMove(current_player);
     return;
 }
 int score(char current_player, int x, int y) {
