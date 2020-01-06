@@ -1,9 +1,10 @@
 #include <ctype.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// #define _DEBUG // uncomment this for debugging prints
+#define _DEBUG  // uncomment this for debugging prints
 #define SIZE 15
 // A safe choice
 #define CHARSIZE 4
@@ -52,9 +53,8 @@ void IdiotMove(char current_player);
 int calcPredictedScore(int scoreMap[PREDICT_MOVES][SIZE][SIZE], int step, int x,
                        int y);
 void highLevel(char current_player);
-void defence();
-void attack();
 int score(char current_player, int x, int y);
+double freeLengthScore(int _x, int _y);
 
 int inputGetInt();
 char validPos(int x, int y);
@@ -237,8 +237,8 @@ void highLevel(char current_player) {
     int attemptY[PREDICT_MOVES] = {0};
 
     int step = 0;
-    for (int highestScore = -1, highestAttackScore = -1; step < PREDICT_MOVES;
-         ++step, highestScore = -1, highestAttackScore = -1) {
+    for (int highestScore = -1, highestDefenceScore = -1; step < PREDICT_MOVES;
+         ++step, highestScore = -1, highestDefenceScore = -1) {
         // place previous predicted moves (DFS)
         for (int i = 0; i < step; i += 2) {
             if (aRecordBoard[attemptX[i]][attemptY[i]] != EMPTY) {
@@ -262,7 +262,7 @@ void highLevel(char current_player) {
 
                 int computerScore = score(current_player, x, y);
                 int playerScore = score(current_player ^ 3, x, y);
-                int attackerScore = (step & 1) ? playerScore : computerScore;
+                int defenceScore = (step & 1) ? computerScore : playerScore;
                 if (computerScore == -1) {
                     // a forbidden move
                     scoreMap[step][x][y] = -1;
@@ -275,24 +275,44 @@ void highLevel(char current_player) {
                 // stop search if a stone in this position can form a
                 // unbroken three or more emergent condition IN THE *NEXT* MOVE
                 if (step == 0 && scoreMap[step][x][y] >= 400000) {
+#ifdef _DEBUG
+                    printf("Emergency!\n");
+#endif
                     current_row = x;
                     current_col = y;
                     return;
                 }
 
                 int predictedScore = calcPredictedScore(scoreMap, step, x, y);
-                // for second condition: always prefer attack (place at a
-                // position more favourable to us, rather than hinder opponent)
+                // for second condition: always prefer defence (place at a
+                // position best to hinder opponent)
                 if (predictedScore > highestScore ||
                     (predictedScore == highestScore &&
-                     attackerScore > highestAttackScore)) {
+                     defenceScore > highestDefenceScore)) {
                     highestScore = predictedScore;
-                    highestAttackScore = attackerScore;
+                    highestDefenceScore = defenceScore;
                     attemptX[step] = x;
                     attemptY[step] = y;
                 }
             }
         }
+#ifdef _DEBUG
+        int __x = attemptX[step];
+        int __y = attemptY[step];
+        aRecordBoard[__x][__y] =
+            (step & 1) ? current_player ^ 3 : current_player;
+        printf("step: %d %c%d\n", step, __y + 'A', 15 - __x);
+        printf("check 2: %d; 3: %d; 4: %d\n", checkUnbrokenTwo(__x, __y),
+               checkUnbrokenThree(__x, __y), checkUnbrokenFour(__x, __y));
+        for (int i = 0; i < SIZE; ++i) {
+            for (int j = 0; j < SIZE; ++j) {
+                printf("%6d ", scoreMap[step][i][j]);
+            }
+            printf("\n");
+        }
+        displayBoard();
+        aRecordBoard[__x][__y] = EMPTY;
+#endif
         // restore board
         for (int i = 0; i < step; ++i) {
             aRecordBoard[attemptX[i]][attemptY[i]] = EMPTY;
@@ -307,33 +327,26 @@ FALLBACK:
     GorillaMove(current_player);
     return;
 }
-int score(char current_player, int x, int y) {
+int _score(char current_player, int x, int y) {
     int dscore = 0;
-    aRecordBoard[x][y] = current_player;
     if (current_player == 1 && checkVictory(x, y)) {
-        if (checkOverline(x, y) /*check player!*/) {
+        if (checkOverline(x, y)) {
             dscore = -1;
-            aRecordBoard[x][y] = 0;
             return dscore;
         } else {
             dscore = 5000000;  //黑棋赢，且无禁手
-            aRecordBoard[x][y] = 0;
             return dscore;
         }
     } else if (current_player == 2 && checkVictory(x, y)) {
         dscore = 5000000;  //白棋赢；
-        aRecordBoard[x][y] = 0;
         return dscore;
     }
-    if (current_player == 2 && checkDoubleFour(x, y) /*check player!*/) {
+    if (current_player == 2 && checkDoubleFour(x, y)) {
         dscore = 4000000;  //白棋出现“双活四”
-        aRecordBoard[x][y] = 0;
         return dscore;
     } else if (current_player == 1 &&
-               (checkDoubleFour(x, y) /*check player!*/ ||
-                checkOverline(x, y))) {
+               (checkDoubleFour(x, y) || checkOverline(x, y))) {
         dscore = -1;  //黑棋出现双活四禁手；
-        aRecordBoard[x][y] = 0;
         return dscore;
     }
     if (current_player == 1 &&
@@ -347,33 +360,59 @@ int score(char current_player, int x, int y) {
     }
     if (checkUnbrokenFour(x, y) == 1) {
         dscore += 800000;  //出现活四；
-        aRecordBoard[x][y] = 0;
         return dscore;
     }
     if (checkBrokenFour(x, y) == 1) {
         dscore += 35000;  //出现冲四；
     }
-    if (current_player == 2 && checkDoubleThree(x, y) /*check player!*/) {
+    if (current_player == 2 && checkDoubleThree(x, y)) {
         dscore += 400000;  //白棋出现“双活三”
-        aRecordBoard[x][y] = 0;
         return dscore;
-    } else if (current_player == 1 &&
-               checkDoubleThree(x, y) /*check player!*/) {
+    } else if (current_player == 1 && checkDoubleThree(x, y)) {
         dscore = -1;  //黑棋出现双活三禁手；
-        aRecordBoard[x][y] = 0;
         return dscore;
     }
     if (checkUnbrokenThree(x, y) == 1) {
+#ifdef _DEBUG
+        printf("unbroken 3\n");
+#endif
         dscore += 60000;  //出现活三；
-        aRecordBoard[x][y] = 0;
         return dscore;
     }
     if (checkUnbrokenTwo(x, y) == 1) {
         dscore += 20000;  //出现活二；
     }
-    aRecordBoard[x][y] = 0;
+#ifdef _DEBUG
+    // dscore += (int)(freeLengthScore(x, y) * 100);
+#endif
     return dscore;
 }
+int score(char current_player, int x, int y) {
+    aRecordBoard[x][y] = current_player;
+    int ret = _score(current_player, x, y);
+    aRecordBoard[x][y] = EMPTY;
+    return ret;
+}
+#ifdef _DEBUG
+double freeLengthScore(int _x, int _y) {
+    int player = aRecordBoard[_x][_y];
+    double score = 0;
+
+    for (int n = 0; n < 8; ++n) {
+        int count = 0;
+        int x = _x;
+        int y = _y;
+
+        for (; validPos(x, y) &&
+               (aRecordBoard[x][y] == EMPTY || aRecordBoard[x][y] == player);
+             move(n, &x, &y), count++) {
+        }
+        int __score = exp(-(count - 8) * (count - 8) / 2 / 15 / 15);
+        score += __score * __score;
+    }
+    return sqrt(score);
+}
+#endif
 
 int inputGetInt() {
     fgets(buff, MAXLINE - 1, stdin);
@@ -422,6 +461,14 @@ int input(char current_player) {
 //初始化棋盘格局
 void initRecordBoard(void) {
     memset(aRecordBoard, EMPTY, sizeof(aRecordBoard));
+#ifdef _DEBUG
+    for (int i = 0; i < SIZE; ++i) {
+        for (int j = 0; j < SIZE; ++j) {
+            printf("%3d ", score(1, i, j));
+        }
+        printf("\n");
+    }
+#endif
 }
 //将aRecordBoard中记录的棋子位置，转化到aDisplayBoardArray中
 void recordtoDisplayArray(void) {
