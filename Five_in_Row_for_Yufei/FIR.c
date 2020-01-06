@@ -9,7 +9,6 @@
 // A safe choice
 #define CHARSIZE 4
 #define DISPLAY_SIZE (SIZE * CHARSIZE)
-#define MAXLINE 1000
 // indicate an empty space on the board; 255 is never used as a player marker
 #define EMPTY 0
 #define PREDICT_MOVES 3
@@ -42,9 +41,6 @@ int current_col = -1;
 int turns = 0;
 // [0(x, row)/1(y, col)][white(1)/black(2)][turns]
 int history[2][3][SIZE * SIZE] = {0};
-
-// used for fgets & sscanf for input
-char buff[MAXLINE];
 
 void PvP();
 void PvE(strategy func);
@@ -415,8 +411,17 @@ double freeLengthScore(int _x, int _y) {
 #endif
 
 int inputGetInt() {
-    fgets(buff, MAXLINE - 1, stdin);
-    return atoi(buff);
+    char* buff = NULL;
+    size_t length = 0;
+
+    getline(&buff, &length, stdin);
+    int ret = atoi(buff);
+    if (buff != NULL) {
+        free(buff);
+        buff = NULL;
+    }
+
+    return ret;
 }
 
 char validPos(int x, int y) {
@@ -429,24 +434,40 @@ char validMove(int x, int y) {
 
 // return 1 when need to quit, 0 if not; will displayBoard
 int input(char current_player) {
+    char* buff = NULL;
+    size_t length = 0;
+    int ret = 0;
     displayBoard();
 
     do {
         printf("Input your cheese:\n");
-        fgets(buff, MAXLINE - 1, stdin);
-        if (buff[0] == '\n') {
-            continue;
+        ret = getline(&buff, &length, stdin);
+        char d = 'P';  // an invalid position as default
+        int n = 0;     // an invalid position as default
+
+        if (ret >= 2) {
+            sscanf(buff, "%c", &d);
         }
-        char d;
-        sscanf(buff, "%c", &d);
+        if (ret >= 3) {
+            n = atoi((buff) + 1);
+        }
+        if (buff != NULL) {
+            free(buff);
+            buff = NULL;
+        }
+        if (ret == -1) {
+            printf("EOF. ");
+            d = 'Q';  // set quit flag
+        }
+
         d = toupper(d);
         if (d == 'Q') {
             printf("Player %d quit!\n", current_player);
             return 1;
         }
-        int n = atoi(buff + 1);
         int x = SIZE - n;
         int y = d - 'A';
+
         if (validMove(x, y)) {
             current_row = x;
             current_col = y;
@@ -455,7 +476,7 @@ int input(char current_player) {
         } else {
             printf("Invalid Position! Please input again:\n");
         }
-    } while (1);
+    } while (ret != -1);
 }
 
 //初始化棋盘格局
