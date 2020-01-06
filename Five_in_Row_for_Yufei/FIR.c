@@ -419,6 +419,7 @@ int inputGetInt() {
 
     getline(&buff, &length, stdin);
     int ret = atoi(buff);
+    // free buff immediately once it is nolonger used
     if (buff != NULL) {
         free(buff);
         buff = NULL;
@@ -437,13 +438,18 @@ char validMove(int x, int y) {
 
 // return 1 when need to quit, 0 if not; will displayBoard
 int input(char current_player) {
+    char* inputPrompt = "Input your cheese:\n";
+    char* redoPrompt = "Invalid Position! Please input again:\n";
+
     char* buff = NULL;
     size_t length = 0;
     int ret = 0;
+    int x = 16;  // an invalid position as default
+    int y = 16;  // an invalid position as default
     displayBoard();
 
     do {
-        printf("Input your cheese:\n");
+        printf("%s", inputPrompt);
         ret = getline(&buff, &length, stdin);
         char d = 'P';  // an invalid position as default
         int n = 0;     // an invalid position as default
@@ -454,32 +460,32 @@ int input(char current_player) {
         if (ret >= 3) {
             n = atoi((buff) + 1);
         }
+        // free buff immediately once it is nolonger used
         if (buff != NULL) {
             free(buff);
             buff = NULL;
         }
+
         if (ret == -1) {
             printf("EOF. ");
             d = 'Q';  // set quit flag
         }
-
         d = toupper(d);
         if (d == 'Q') {
             printf("Player %d quit!\n", current_player);
             return 1;
         }
-        int x = SIZE - n;
-        int y = d - 'A';
 
-        if (validMove(x, y)) {
-            current_row = x;
-            current_col = y;
-            displayBoard();
-            return 0;
-        } else {
-            printf("Invalid Position! Please input again:\n");
-        }
-    } while (ret != -1);
+        x = SIZE - n;
+        y = d - 'A';
+        // change prompt
+        inputPrompt = redoPrompt;
+    } while (!validMove(x, y));
+
+    current_row = x;
+    current_col = y;
+    displayBoard();
+    return 0;
 }
 
 //初始化棋盘格局
