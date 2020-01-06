@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define _DEBUG  // uncomment this for debugging prints
+// #define _DEBUG  // uncomment this for debugging prints
+// #define _NEW_FEATURE
 #define SIZE 15
 // A safe choice
 #define CHARSIZE 4
@@ -50,7 +51,9 @@ int calcPredictedScore(int scoreMap[PREDICT_MOVES][SIZE][SIZE], int step, int x,
                        int y);
 void highLevel(char current_player);
 int score(char current_player, int x, int y);
+#ifdef _NEW_FEATURE
 double freeLengthScore(int _x, int _y);
+#endif
 
 int inputGetInt();
 char validPos(int x, int y);
@@ -378,8 +381,8 @@ int _score(char current_player, int x, int y) {
     if (checkUnbrokenTwo(x, y) == 1) {
         dscore += 20000;  //出现活二；
     }
-#ifdef _DEBUG
-    // dscore += (int)(freeLengthScore(x, y) * 100);
+#ifdef _NEW_FEATURE
+    dscore += (int)(freeLengthScore(x, y) * 100);
 #endif
     return dscore;
 }
@@ -389,7 +392,7 @@ int score(char current_player, int x, int y) {
     aRecordBoard[x][y] = EMPTY;
     return ret;
 }
-#ifdef _DEBUG
+#ifdef _NEW_FEATURE
 double freeLengthScore(int _x, int _y) {
     int player = aRecordBoard[_x][_y];
     double score = 0;
@@ -705,19 +708,19 @@ int checkConsectary(int _x, int _y, int _count) {
 }
 char checkUnbrokenTwo(int x, int y) {
     int ret = checkConsectary(x, y, 2);
-    return (ret & 1 && !ret & 4);
+    return ((ret & 1) && !(ret & 4));
 }
 char checkUnbrokenThree(int x, int y) {
     int ret = checkConsectary(x, y, 3);
-    return (ret & 1 && !ret & 4);
+    return ((ret & 1) && !(ret & 4));
 }
 char checkUnbrokenFour(int x, int y) {
     int ret = checkConsectary(x, y, 4);
-    return (ret & 1 && !ret & 4);
+    return ((ret & 1) && !(ret & 4));
 }
 char checkBrokenFour(int x, int y) {
     int ret = checkConsectary(x, y, 4);
-    return (ret & 1 && ret & 4);
+    return ((ret & 1) && (ret & 4));
 }
 
 char checkForbiddenMoves(int x, int y) {
